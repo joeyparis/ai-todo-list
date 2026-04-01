@@ -88,10 +88,15 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
           return
         }
 
+        const textContent = (message.parts as any[])
+          ?.filter((p: any) => p.type === 'text')
+          .map((p: any) => p.text)
+          .join('') ?? ''
+
         await addMessage(
           listId,
           'assistant',
-          (message as any).content,
+          textContent,
           message.parts ? JSON.stringify(message.parts) : undefined,
         )
       } catch (err) {
@@ -156,7 +161,10 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
         )
         .map((message: any) => {
           function summarizeToolCalls(message: UIMessage): string {
-            if ((message as any).content) return (message as any).content
+            const textParts = message.parts?.filter(p => p.type === 'text') ?? []
+            const textContent = textParts.map((p: any) => p.text).join('')
+            if (textContent) return textContent
+
             const toolParts = message.parts?.filter(p => p.type === 'tool-invocation') ?? []
             if (toolParts.length === 0) return ''
             const actions: string[] = []
@@ -176,7 +184,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
 
           const content = message.role === 'assistant'
             ? summarizeToolCalls(message)
-            : (message as any).content
+            : message.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') || ''
 
           return {
             id: message.id,
