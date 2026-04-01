@@ -78,43 +78,49 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScr
         </div>
 
         <div
-          className={`flex ${orientation === 'vertical' ? 'flex-col border-y' : 'flex-col border-x'} items-stretch bg-gray-50 border-gray-200`}
+          className={`flex ${orientation === 'vertical' ? 'flex-row h-10 border-y' : 'flex-col w-10 border-x'} items-center bg-gray-50 border-gray-200`}
         >
+          <button
+            type="button"
+            title={listVisible ? 'Hide list' : 'Show list'}
+            onClick={() => setListVisible(v => !v)}
+            className={`p-1.5 flex items-center justify-center hover:bg-gray-100 ${!listVisible ? 'opacity-40' : ''}`}
+          >
+            ☰
+          </button>
+
           <div
-            className={orientation === 'vertical'
-              ? 'h-2 cursor-row-resize bg-gray-300'
-              : 'w-2 cursor-col-resize bg-gray-300'}
+            className={`flex-1 ${orientation === 'vertical' ? 'h-3 mx-1' : 'w-3 my-1'} bg-gray-300 rounded flex items-center justify-center ${orientation === 'vertical' ? 'cursor-row-resize' : 'cursor-col-resize'}`}
             style={{ touchAction: 'none' }}
             onPointerDown={() => {
               draggingRef.current = true
             }}
-          />
-          <div className={`flex ${orientation === 'vertical' ? '' : 'flex-col'} text-xs text-gray-500`}>
-            <button
-              type="button"
-              onClick={() => setListVisible(v => !v)}
-              className={`flex-1 py-1 hover:bg-gray-100 ${orientation === 'horizontal' ? 'border-b border-gray-200' : ''}`}
-            >
-              {listVisible ? 'Hide List' : 'Show List'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setChatVisible(v => !v)}
-              className={`flex-1 py-1 hover:bg-gray-100 ${orientation === 'vertical' ? 'border-l border-gray-200' : ''}`}
-            >
-              {chatVisible ? 'Hide Chat' : 'Show Chat'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                userOverrodeRef.current = true
-                setOrientation(o => (o === 'vertical' ? 'horizontal' : 'vertical'))
-              }}
-              className={`flex-1 py-1 border-t border-gray-200 hover:bg-gray-100`}
-            >
-              {orientation === 'vertical' ? '⬍' : '⬌'}
-            </button>
+          >
+            <span className="text-gray-600 text-xs select-none">
+              {orientation === 'vertical' ? '⋯' : '⋮'}
+            </span>
           </div>
+
+          <button
+            type="button"
+            title={chatVisible ? 'Hide chat' : 'Show chat'}
+            onClick={() => setChatVisible(v => !v)}
+            className={`p-1.5 flex items-center justify-center hover:bg-gray-100 ${!chatVisible ? 'opacity-40' : ''}`}
+          >
+            💬
+          </button>
+
+          <button
+            type="button"
+            title="Toggle orientation"
+            onClick={() => {
+              userOverrodeRef.current = true
+              setOrientation(o => (o === 'vertical' ? 'horizontal' : 'vertical'))
+            }}
+            className="p-1.5 flex items-center justify-center hover:bg-gray-100"
+          >
+            {orientation === 'vertical' ? '⬍' : '⬌'}
+          </button>
         </div>
 
         <div
