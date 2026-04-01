@@ -53,6 +53,7 @@ export default function SettingsPage() {
   const [isTesting, setIsTesting] = useState(false)
   const [status, setStatus] = useState<Record<string, string>>({})
   const [testResults, setTestResults] = useState<Record<string, 'pass' | 'fail'>>({})
+  const [savedIndicator, setSavedIndicator] = useState<Record<string, boolean>>({})
 
   
 
@@ -94,6 +95,10 @@ export default function SettingsPage() {
     }
 
     await saveProviderConfig(provider, updated)
+    setSavedIndicator(prev => ({ ...prev, [provider]: true }))
+    setTimeout(() => {
+      setSavedIndicator(prev => ({ ...prev, [provider]: false }))
+    }, 2000)
   }
 
   async function handleTestConnection(provider: string) {
@@ -166,7 +171,12 @@ export default function SettingsPage() {
 
             return (
               <div className="border rounded-lg p-4 border-blue-500">
-                <div className="font-semibold mb-2">{PROVIDER_LABELS[p]}</div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold">{PROVIDER_LABELS[p]}</span>
+                  {savedIndicator[p] && (
+                    <span className="text-xs text-green-600 animate-pulse">Saved</span>
+                  )}
+                </div>
                 <p className="text-sm text-gray-500 mb-3">{PROVIDER_HINTS[p]}</p>
 
                 <input
