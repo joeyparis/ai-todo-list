@@ -3,6 +3,7 @@ import { db } from './index'
 import {
   createList, updateList, deleteList,
   addItems, completeItems, uncompleteItems, updateItem, deleteItems,
+  addMessage,
   saveProviderConfig, setActiveProvider,
 } from './mutations'
 
@@ -116,5 +117,76 @@ describe('settings', () => {
     await setActiveProvider('anthropic')
     const settings = await db.settings.get('settings')
     expect(settings?.activeProvider).toBe('anthropic')
+  })
+})
+
+describe('addMessage', () => {
+  it('creates message with correct fields', async () => {
+    const list = await createList('Test')
+    const msg = await addMessage(list.id, 'user', 'hello world')
+    expect(msg.id).toBeTruthy()
+    expect(msg.listId).toBe(list.id)
+    expect(msg.role).toBe('user')
+    expect(msg.content).toBe('hello world')
+    expect(msg.createdAt).toBeInstanceOf(Date)
+    const stored = await db.messages.get(msg.id)
+    expect(stored?.content).toBe('hello world')
+  })
+
+  it('stores parts string when provided', async () => {
+    const list = await createList('Test')
+    const parts = JSON.stringify([{ type: 'text', text: 'hi' }])
+    const msg = await addMessage(list.id, 'assistant', 'hi', parts)
+    const stored = await db.messages.get(msg.id)
+    expect(stored?.parts).toBe(parts)
+  })
+
+  it('stores undefined parts gracefully when not provided', async () => {
+    const list = await createList('Test')
+    const msg = await addMessage(list.id, 'user', 'no parts')
+    const stored = await db.messages.get(msg.id)
+    expect(stored?.parts).toBeUndefined()
+  })
+
+  it('works for both user and assistant roles', async () => {
+    const list = await createList('Test')
+    const user = await addMessage(list.id, 'user', 'hello')
+    const asst = await addMessage(list.id, 'assistant', 'world')
+    expect(user.role).toBe('user')
+    expect(asst.role).toBe('assistant')
+  })
+})
+
+describe('edge cases', () => {
+  it('createList with no goal stores undefined goal', async () => {
+    const list = await createList('No Goal')
+    expect(list.goal).toBeUndefined()
+    const stored = await db.lists.get(list.id)
+    expect(stored?.goal).toBeUndefined()
+  })
+
+  it('addItems with empty array returns empty array', async () => {
+    const list = await createList('Test')
+    const result = await addItems(list.id, [])
+    expect(result).toHaveLength(0)
+  })
+
+  it('completeItems with empty array does not throw', async () => {
+    await expect(completeItems([])).resolves.not.toThrow()
+  })
+
+  it('deleteItems with nonexistent IDs does not throw', async () => {
+    await expect(deleteItems(['fake-id-1', 'fake-id-2'])).resolves.not.toThrow()
+  })
+
+  it('saveProviderConfig creates settings row if none exists', async () => {
+    await saveProviderConfig('openai', { apiKey: 'sk-test', model: 'gpt-4o' })
+    const settings = await db.settings.get('settings')
+    expect(settings).toBeTruthy()
+    expect(settings?.activeProvider).toBe('openai')
+  })
+
+  it('setActiveProvider when no settings exist does not throw', async () => {
+    await expect(setActiveProvider('anthropic')).resolves.not.toThrow()
   })
 })
