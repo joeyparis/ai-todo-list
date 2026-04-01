@@ -1,0 +1,24 @@
+Task 9 - Onboarding E2E Tests
+==============================
+File: e2e/onboarding.spec.ts
+Tests: 4
+
+Test Results (npx playwright test e2e/onboarding.spec.ts e2e/list-management.spec.ts):
+  9 passed (17.5s)
+
+Tests in onboarding.spec.ts:
+  [PASS] Onboarding Flow > shows empty state on fresh visit
+  [PASS] Onboarding Flow > New List button shows create form
+  [PASS] Onboarding Flow > creates a list and navigates to it
+  [PASS] Onboarding Flow > list page shows empty todo panel and API key warning
+
+Selector fixes applied during iteration:
+  - getByRole('button', { name: 'Create' }) -> exact: true
+    Reason: "Create your first list" CTA was also matched as substring
+
+Key assertions:
+  - "No lists yet." empty state visible on clean IndexedDB
+  - "+ New List" click reveals form with List name input
+  - Create form navigates to /list/[uuid] on submit
+  - List detail shows "No items yet." and "Missing AI settings" warning
+  - Each test starts with clearStorage() -> page.reload() for clean state

@@ -1,0 +1,29 @@
+Task 9 - List Management E2E Tests
+====================================
+File: e2e/list-management.spec.ts
+Tests: 5
+
+Test Results (npx playwright test e2e/onboarding.spec.ts e2e/list-management.spec.ts):
+  9 passed (17.5s)
+
+Tests in list-management.spec.ts:
+  [PASS] List Management > created list appears on index
+  [PASS] List Management > multiple lists visible on index
+  [PASS] List Management > click list navigates to list detail
+  [PASS] List Management > back button returns to index from list view
+  [PASS] List Management > delete list via options menu
+
+Selector fixes applied during iteration:
+  - getByRole('button', { name: 'Create' }) -> exact: true
+    Reason: "Create your first list" CTA was also matched as substring
+  - getByRole('button', { name: 'Delete' }) -> exact: true
+    Reason: "List To Delete" list item button was also matched as substring
+
+Key assertions:
+  - Created list name visible on index after createList() helper
+  - Multiple lists all visible simultaneously on index page
+  - Clicking list navigates to /list/[uuid]
+  - Back button (regex /Back/) returns to / root
+  - Delete via aria-label="Options" + dropdown Delete button removes list
+  - window.confirm dialog handled with page.on('dialog', accept) before click
+  - Each test uses .border.rounded-xl container scoping for Options button
