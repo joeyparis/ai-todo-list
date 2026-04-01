@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       tools: todoTools,
     })
 
-    return result.toTextStreamResponse()
+    return (result as any).toDataStreamResponse()
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     const isAuthError =
@@ -66,8 +66,9 @@ export async function POST(req: NextRequest) {
       message.toLowerCase().includes('authentication') ||
       message.toLowerCase().includes('auth')
 
+    const sanitized = message.replace(new RegExp('[^\\x00-\\x7F]', 'g'), '?')
     return Response.json(
-      { error: isAuthError ? 'Invalid API key' : message },
+      { error: isAuthError ? 'Invalid API key' : sanitized },
       { status: isAuthError ? 401 : 500 },
     )
   }

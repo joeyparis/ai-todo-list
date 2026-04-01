@@ -124,34 +124,45 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
         <div className="flex gap-2 mb-6 flex-wrap">
-          {providers.map(p => (
-            <button
-              type="button"
-              key={p}
-              onClick={() => handleSetActive(p)}
-              className={`px-3 py-2 rounded-lg border ${activeProvider === p ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-            >
-              {PROVIDER_LABELS[p]}
-            </button>
-          ))}
+          {providers.map(p => {
+            const hasKey = !!localConfigs[p]?.apiKey
+            const isActive = activeProvider === p
+            return (
+              <button
+                type="button"
+                key={p}
+                onClick={() => handleSetActive(p)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  isActive
+                    ? 'bg-blue-50 border-blue-500 text-blue-700'
+                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {hasKey && <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />}
+                {PROVIDER_LABELS[p]}
+              </button>
+            )
+          })}
         </div>
 
         <div className="flex flex-col gap-6">
-          {providers.map(p => {
+          {(() => {
+            const p = activeProvider
             const cfg = localConfigs[p] || { apiKey: '', model: MODELS[p][0] }
             const models = MODELS[p]
             const keyPrefix = KEY_PREFIXES[p]
 
             return (
-              <div key={p} className={`border rounded-lg p-4 ${activeProvider === p ? 'border-blue-500' : 'border-gray-200 opacity-80'}`}>
-                <div className="font-semibold mb-2">{PROVIDER_LABELS[p]} {activeProvider === p && '(Active)'}</div>
+              <div className="border rounded-lg p-4 border-blue-500">
+                <div className="font-semibold mb-2">{PROVIDER_LABELS[p]}</div>
                 <p className="text-sm text-gray-500 mb-3">{PROVIDER_HINTS[p]}</p>
 
                 <input
                   type="password"
                   value={cfg.apiKey}
                   onChange={(e) => handleChange(p, 'apiKey', e.target.value)}
-                  placeholder={KEY_PREFIXES[p]?.example}
+                  onBlur={(e) => handleChange(p, 'apiKey', e.target.value)}
+                  placeholder={keyPrefix?.example}
                   className="w-full border rounded px-3 py-2 mb-2"
                 />
 
@@ -163,6 +174,17 @@ export default function SettingsPage() {
                   {models.map(m => <option key={m}>{m}</option>)}
                 </select>
 
+                {KEY_URLS[p] && (
+                  <a
+                    href={KEY_URLS[p].url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-500 hover:underline block mb-2"
+                  >
+                    {KEY_URLS[p].label} →
+                  </a>
+                )}
+
                 <button
                   type="button"
                   onClick={() => handleTestConnection(p)}
@@ -172,82 +194,7 @@ export default function SettingsPage() {
                 </button>
               </div>
             )
-          })}
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="apiKey" className="text-base font-medium">
-              API Key
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="apiKey"
-                type={showKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your API key"
-                className="flex-1 border border-gray-300 rounded-lg px-4 text-base"
-                style={{ height: '48px' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey((prev) => !prev)}
-                className="px-4 border border-gray-300 rounded-lg text-base bg-white"
-                style={{ minWidth: '72px', height: '48px' }}
-              >
-                {showKey ? 'Hide' : 'Show'}
-              </button>
-            </div>
-
-            {provider === 'google' && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-              <GoogleSignInButton
-                onSuccess={(token) => {
-                  setApiKey(token)
-                  setStatus('Google sign-in successful! Token stored.')
-                }}
-                onError={() => setStatus('Google sign-in failed')}
-              />
-            )}
-
-            {apiKey.length > 4 && keyPrefix && !apiKey.startsWith(keyPrefix.prefix) && !(provider === 'google' && apiKey.startsWith('ya29.')) && (
-              <p className="text-xs text-amber-600 mt-1">
-                {PROVIDER_LABELS[provider]} keys usually start with &quot;{keyPrefix.prefix}&quot;. Double-check your key.
-              </p>
-            )}
-
-            {provider === 'google' && apiKey && apiKey.startsWith('ya29.') && (
-              <p className="text-xs text-amber-600">
-                OAuth tokens expire after ~1 hour. Sign in again when expired.
-              </p>
-            )}
-
-            {KEY_URLS[provider] && (
-              <a
-                href={KEY_URLS[provider].url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-500 hover:underline"
-              >
-                {KEY_URLS[provider].label} →
-              </a>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="model" className="text-base font-medium">
-              Model
-            </label>
-            <select
-              id="model"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 text-base bg-white"
-              style={{ height: '48px' }}
-            >
-              {models.map((m: string) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
+          })()}
 
           {status && (
             <p
