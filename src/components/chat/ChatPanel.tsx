@@ -79,20 +79,31 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
 
   const chat = useChat({
     messages: initialMessages,
+    onError: (error) => {
+      console.error('[ChatPanel] useChat error:', error)
+    },
     onFinish: async (message: any) => {
-      if (message.role !== 'assistant') {
-        return
-      }
+      try {
+        if (message.role !== 'assistant') {
+          return
+        }
 
-      await addMessage(
-        listId,
-        'assistant',
-        (message as any).content,
-        message.parts ? JSON.stringify(message.parts) : undefined,
-      )
+        await addMessage(
+          listId,
+          'assistant',
+          (message as any).content,
+          message.parts ? JSON.stringify(message.parts) : undefined,
+        )
+      } catch (err) {
+        console.error('[ChatPanel] onFinish error:', err)
+      }
     },
     onToolCall: async ({ toolCall }: any) => {
-      await executeToolCall(toolCall.toolName, toolCall.args, listId)
+      try {
+        await executeToolCall(toolCall.toolName, toolCall.args, listId)
+      } catch (err) {
+        console.error('[ChatPanel] onToolCall error:', err)
+      }
     },
   })
 
@@ -117,17 +128,21 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       const userParts: UIMessage['parts'] = [{ type: 'text', text: content }]
       await addMessage(listId, 'user', content, JSON.stringify(userParts))
 
-      await chat.sendMessage(
-        {
-          text: content,
-        },
-        {
-          body: {
-            messages: chat.messages.slice(-20),
-            ...latestBodyRef.current,
+      try {
+        await chat.sendMessage(
+          {
+            text: content,
           },
-        },
-      )
+          {
+            body: {
+              messages: chat.messages.slice(-20),
+              ...latestBodyRef.current,
+            },
+          },
+        )
+      } catch (err) {
+        console.error('[ChatPanel] sendMessage error:', err)
+      }
     },
     [chat, listId, activeConfig?.apiKey],
   )
