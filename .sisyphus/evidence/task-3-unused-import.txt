@@ -1,0 +1,24 @@
+UNUSED IMPORT REMOVAL VERIFICATION
+===================================
+
+File: app/settings/page.tsx
+Issues: 
+1. Lines 60-63 had unused GoogleSignInButton dynamic import
+2. Line 7 had unused dynamic import from 'next/dynamic'
+
+Verification:
+$ grep -n "GoogleSignInButton" app/settings/page.tsx
+(no output - successfully removed)
+
+$ grep -n "import dynamic" app/settings/page.tsx
+(no output - successfully removed)
+
+Changes made:
+- Removed: import dynamic from 'next/dynamic' (line 7)
+- Removed: const GoogleSignInButton = dynamic(...) (lines 60-63)
+
+✓ GoogleSignInButton no longer referenced
+✓ dynamic import no longer used
+✓ Tests pass: 48 passed
+✓ TypeScript check: no errors
+✓ Build: successful

@@ -12,7 +12,17 @@
     "ses_2b558c323ffeb8geH75duekNeO",
     "ses_2b556b05bffe7K1WLQ2GpT0Ghg",
     "ses_2b554fc08ffeo7XjpBDr1X03VF",
-    "ses_2b555ad3dffesK3cGpY9a1dA17"
+    "ses_2b555ad3dffesK3cGpY9a1dA17",
+    "ses_2b536377dffeiRM3tbuPeXPEua",
+    "ses_2b533cc99ffea1zKY49Lr9QSAU",
+    "ses_2b5337ae4ffeyB0BRJLxVR4Ikz",
+    "ses_2b533f474ffeYos414O6yk1ab3",
+    "ses_2b533accaffeESNr3kWVOSroFX",
+    "ses_2b52ebfc1ffeiTcC9YJRrP1AnJ",
+    "ses_2b52d3ce6ffebHRGPMRhG46r7z",
+    "ses_2b52d7627ffeKI1m1QgTf3ZHFO",
+    "ses_2b51101e8ffehWjB35Ys0SzSIQ",
+    "ses_2b5103ff1ffeBOFHrf60WVeF9d"
   ],
   "plan_name": "testing-deep-dive",
   "agent": "atlas",
@@ -52,6 +62,23 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-04-01T20:14:37.177Z"
+    },
+    "todo:13": {
+      "task_key": "todo:13",
+      "task_label": "13",
+      "task_title": "Remove ad-hoc QA scripts and verify full test suite",
+      "session_id": "ses_2b536377dffeiRM3tbuPeXPEua",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-04-01T20:45:11.855Z"
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** - `oracle`",
+      "session_id": "ses_2b52d7627ffeKI1m1QgTf3ZHFO",
+      "agent": "oracle",
+      "updated_at": "2026-04-01T20:54:44.648Z"
     }
   }
 }

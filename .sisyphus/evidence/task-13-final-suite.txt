@@ -1,0 +1,58 @@
+TASK 13: DELETE AD-HOC QA SCRIPTS AND VERIFY COMPLETE TEST SUITE
+================================================================
+
+DELETED FILES:
+- scripts/qa-all-flows.mjs
+- scripts/qa-fixed-flows.mjs
+- scripts/qa-flow1.mjs
+- scripts/ directory (removed when empty)
+
+REFERENCE CHECK:
+No references found in src/, app/, e2e/, or package.json
+
+VERIFICATION SUITE RESULTS:
+==========================
+
+1. UNIT TESTS (npm test)
+   ✓ Test Files: 8 passed (8)
+   ✓ Tests: 61 passed (61)
+   ✓ Duration: 403ms
+   ✓ Status: PASS
+
+2. E2E TESTS (npx playwright test)
+   ✓ Tests: 35 passed (35)
+   ✓ Duration: 28.8s
+   ✓ Coverage:
+     - 1 smoke test
+     - 4 onboarding tests
+     - 5 list-management tests
+     - 8 settings tests
+     - 10 todo-crud tests
+     - 7 chat tests
+   ✓ Status: PASS
+
+3. TYPE CHECK (npx tsc --noEmit)
+   ✓ No TypeScript errors
+   ✓ Status: PASS
+
+4. LINTING (npm run lint)
+   ✓ No ESLint warnings or errors
+   ✓ Status: PASS
+
+5. PRODUCTION BUILD (npm run build)
+   ✓ Build compiled successfully in 704ms
+   ✓ All routes generated
+   ✓ Service worker bundled
+   ✓ Status: PASS
+
+SUMMARY:
+========
+✓ All 3 ad-hoc QA scripts deleted
+✓ No remaining references in codebase
+✓ 61 unit tests pass
+✓ 35 E2E tests pass
+✓ TypeScript type checking passes
+✓ ESLint passes
+✓ Production build succeeds
+
+The proper Playwright test suite (@playwright/test) has fully replaced the ad-hoc scripts.

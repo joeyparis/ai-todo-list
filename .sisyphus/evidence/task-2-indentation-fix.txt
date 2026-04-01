@@ -1,0 +1,16 @@
+INDENTATION FIX VERIFICATION
+============================
+
+File: src/lib/llm/prompts.ts
+Issue: Line 31 had zero indentation, should have 4 spaces to match surrounding lines
+
+Verification:
+$ grep -n "statusPrefix" src/lib/llm/prompts.ts
+31:    const statusPrefix = item.completed ? '[done] ' : ''
+38:    return `[${item.id}] ${statusPrefix}${item.text}${metadataSuffix}`
+
+✓ Line 31 now has 4 spaces of indentation (matching lines 32-38)
+✓ No logic changes
+✓ Tests pass: 48 passed
+✓ TypeScript check: no errors
+✓ Build: successful

@@ -111,13 +111,15 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
         console.error('[ChatPanel] onFinish error:', err)
       }
     },
-    onToolCall: async ({ toolCall }: any) => {
+    onToolCall: (async ({ toolCall }: any) => {
       try {
-        await executeToolCall(toolCall.toolName, toolCall.args, listId)
+        const result = await executeToolCall(toolCall.toolName, toolCall.args, listId)
+        return result
       } catch (err) {
         console.error('[ChatPanel] onToolCall error:', err)
+        return { success: false, error: String(err) }
       }
-    },
+    }) as any,
   })
 
   const { messages, setMessages, status, error } = chat

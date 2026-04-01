@@ -1,0 +1,23 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - link "← Back" [ref=e4] [cursor=pointer]:
+        - /url: /
+      - heading "Settings" [level=1] [ref=e5]
+      - generic [ref=e6]:
+        - button "OpenAI" [ref=e7] [cursor=pointer]
+        - button "Anthropic" [ref=e8] [cursor=pointer]
+        - button "Google Gemini" [ref=e9] [cursor=pointer]
+        - button "OpenRouter" [ref=e10] [cursor=pointer]
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e14]: OpenAI
+          - paragraph [ref=e15]: Requires an OpenAI account with API credits. Free trial credits available for new accounts.
+          - textbox "sk-..." [ref=e16]
+          - combobox [ref=e17]:
+            - option "gpt-4o" [selected]
+            - option "gpt-4o-mini"
+          - link "Get your OpenAI API key →" [ref=e18] [cursor=pointer]:
+            - /url: https://platform.openai.com/api-keys
+        - button "Test Connection" [disabled] [ref=e19]
+  - alert [ref=e20]
