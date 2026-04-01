@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Providers } from '@/components/Providers'
 
 export const metadata: Metadata = {
   title: 'AI Todo List',
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#ffffff" />
       </head>
       <body className="font-sans antialiased bg-white text-gray-900">
-        {children}
+        <Providers googleClientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
+          {children}
+        </Providers>
       </body>
     </html>
   )

@@ -24,7 +24,13 @@ export async function POST(req: NextRequest) {
         providerModel = createAnthropic({ apiKey })(model)
         break
       case 'google':
-        providerModel = createGoogleGenerativeAI({ apiKey })(model)
+        if (apiKey.startsWith('ya29.')) {
+          providerModel = createGoogleGenerativeAI({
+            headers: { Authorization: `Bearer ${apiKey}` },
+          })(model)
+        } else {
+          providerModel = createGoogleGenerativeAI({ apiKey })(model)
+        }
         break
       case 'openrouter':
         providerModel = createOpenRouter({ apiKey }).chat(model)

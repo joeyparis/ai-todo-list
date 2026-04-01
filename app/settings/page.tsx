@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSettings } from '@/lib/db/hooks'
 import { saveSettings } from '@/lib/db/mutations'
+import dynamic from 'next/dynamic'
 
 const MODELS: Record<string, string[]> = {
   openai: ['gpt-4o', 'gpt-4o-mini'],
@@ -54,6 +55,11 @@ export default function SettingsPage() {
   const [status, setStatus] = useState('')
   const [isTesting, setIsTesting] = useState(false)
   const [loaded, setLoaded] = useState(false)
+
+  const GoogleSignInButton = dynamic(
+    () => import('@/components/GoogleSignInButton').then(mod => ({ default: mod.GoogleSignInButton })),
+    { ssr: false }
+  )
 
   useEffect(() => {
     if (settings && !loaded) {
@@ -162,9 +168,25 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            {apiKey.length > 4 && keyPrefix && !apiKey.startsWith(keyPrefix.prefix) && (
+            {provider === 'google' && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+              <GoogleSignInButton
+                onSuccess={(token) => {
+                  setApiKey(token)
+                  setStatus('Google sign-in successful! Token stored.')
+                }}
+                onError={() => setStatus('Google sign-in failed')}
+              />
+            )}
+
+            {apiKey.length > 4 && keyPrefix && !apiKey.startsWith(keyPrefix.prefix) && !(provider === 'google' && apiKey.startsWith('ya29.')) && (
               <p className="text-xs text-amber-600 mt-1">
                 {PROVIDER_LABELS[provider]} keys usually start with &quot;{keyPrefix.prefix}&quot;. Double-check your key.
+              </p>
+            )}
+
+            {provider === 'google' && apiKey && apiKey.startsWith('ya29.') && (
+              <p className="text-xs text-amber-600">
+                OAuth tokens expire after ~1 hour. Sign in again when expired.
               </p>
             )}
 
