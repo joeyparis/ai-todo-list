@@ -1,0 +1,41 @@
+=== LLM Tools Zod Validation Tests ===
+
+Test 1: addItems with valid input
+✓ PASS: Valid input accepted
+
+Test 2: addItems with invalid input (empty text)
+✓ PASS: Correctly rejected - String must contain at least 1 character(s)
+
+Test 3: completeItems with valid input
+✓ PASS: Valid input accepted
+
+Test 4: completeItems with invalid input (empty array)
+✓ PASS: Correctly rejected - Array must contain at least 1 element(s)
+
+Test 5: uncompleteItems with valid input
+✓ PASS: Valid input accepted
+
+Test 6: updateItem with valid input (text only)
+✓ PASS: Valid input accepted
+
+Test 7: updateItem with valid input (metadata only)
+✓ PASS: Valid input accepted
+
+Test 8: updateItem with invalid input (empty text)
+✓ PASS: Correctly rejected - String must contain at least 1 character(s)
+
+Test 9: deleteItems with valid input
+✓ PASS: Valid input accepted
+
+Test 10: deleteItems with invalid input (empty array)
+✓ PASS: Correctly rejected - Array must contain at least 1 element(s)
+
+Test 11: addAndCompleteItems with valid input
+✓ PASS: Valid input accepted
+
+Test 12: Verify all 6 tools exist
+✓ PASS: All 6 tools present: addItems, completeItems, uncompleteItems, updateItem, deleteItems, addAndCompleteItems
+
+=== Test Summary ===
+Passed: 12
+Failed: 0
