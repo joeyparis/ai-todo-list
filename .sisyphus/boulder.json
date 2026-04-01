@@ -6,7 +6,13 @@
     "ses_2b8bf2f02ffePDu7oLbFg62WbJ",
     "ses_2b8bb01faffeuwAdsrVlszSmGY",
     "ses_2b8bb4560ffezN6H7635nKYW6m",
-    "ses_2b8bb50b2ffeRgjxRo28hTeV7z"
+    "ses_2b8bb50b2ffeRgjxRo28hTeV7z",
+    "ses_2b8b656a2ffes4Q632sO58cjvA",
+    "ses_2b8b5c875ffezk2AxxbNf0qB9p",
+    "ses_2b8b1f943ffeoalEVUyEkmOqQT",
+    "ses_2b8b19c4effeOOj9waPS1O3s54",
+    "ses_2b8b13ea7ffeBrRqsAz5lTJS9r",
+    "ses_2b8b044ceffeQ7CMwSTG0Z3dI5"
   ],
   "plan_name": "ai-todo-list",
   "agent": "atlas",
@@ -28,6 +34,24 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-04-01T04:23:52.275Z"
+    },
+    "todo:3": {
+      "task_key": "todo:3",
+      "task_label": "3",
+      "task_title": "PWA Manifest + Service Worker Setup",
+      "session_id": "ses_2b8b656a2ffes4Q632sO58cjvA",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-04-01T04:26:32.734Z"
+    },
+    "todo:6": {
+      "task_key": "todo:6",
+      "task_label": "6",
+      "task_title": "Settings Page - API Key / Provider / Model Management",
+      "session_id": "ses_2b8b13ea7ffeBrRqsAz5lTJS9r",
+      "agent": "Sisyphus-Junior",
+      "category": "visual-engineering",
+      "updated_at": "2026-04-01T04:30:38.095Z"
     }
   }
 }

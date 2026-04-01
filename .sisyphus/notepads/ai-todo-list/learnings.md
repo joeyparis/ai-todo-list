@@ -84,3 +84,98 @@
 - `useLiveQuery(() => query, [deps])` - deps array triggers re-query when values change
 - `.orderBy('field').reverse().toArray()` for descending sort
 - `.where('index').equals(value).sortBy('field')` for filtered + sorted queries
+
+## PWA Setup with Serwist (Task 3)
+
+### Key Learnings
+
+1. **Serwist Integration**
+   - `@serwist/next` provides a Next.js wrapper that handles service worker bundling
+   - The `withSerwistInit` HOC wraps the Next.js config
+   - Service worker source: `src/sw.ts`, compiled to: `public/sw.js`
+   - Serwist automatically injects `__SW_MANIFEST` at build time (requires TypeScript reference directive)
+
+2. **Service Worker Type Safety**
+   - Must add `/// <reference lib="webworker" />` to enable ServiceWorkerGlobalScope types
+   - Declare `self.__SW_MANIFEST` with proper type to avoid TypeScript errors
+   - The manifest is injected by Serwist during build, not available at dev time in editor
+
+3. **Manifest Structure**
+   - Required fields: name, short_name, description, start_url, display, icons
+   - Icons need `purpose: "any maskable"` for modern PWA support
+   - Both 192x192 and 512x512 sizes recommended for Android/iOS compatibility
+   - Manifest served as static file from public/ directory
+
+4. **Icon Generation**
+   - Minimal valid PNG files can be created from base64 (1x1 pixel placeholder)
+   - For MVP, placeholder icons are sufficient - can be replaced later with proper designs
+   - Icons stored in public/icons/ and referenced in manifest.json
+
+5. **Layout Integration**
+   - Add manifest link: `<link rel="manifest" href="/manifest.json" />`
+   - Add apple-mobile-web-app-title for iOS home screen
+   - Add theme-color meta tag for browser UI theming
+   - Preserve existing viewport and apple-mobile-web-app-capable tags
+
+6. **Build Process**
+   - Serwist bundling happens during `npm run build`
+   - Service worker is pre-cached with all static assets
+   - Build output shows "(serwist) Bundling the service worker script..." confirmation
+   - No additional build steps needed beyond standard Next.js build
+
+7. **Verification**
+   - Manifest endpoint: `curl http://localhost:3000/manifest.json`
+   - Service worker: `curl http://localhost:3000/sw.js`
+   - Both should be accessible and valid
+   - Browser DevTools > Application tab shows manifest and service worker registration
+
+### Configuration Files Modified
+- `next.config.ts`: Added Serwist HOC wrapper
+- `app/layout.tsx`: Added manifest link and meta tags
+- `src/sw.ts`: Created service worker entry point
+- `public/manifest.json`: Created PWA manifest
+- `public/icons/`: Created icon directory with placeholder PNGs
+
+### Next Steps
+- Replace placeholder icons with actual app icons
+- Add offline page for better UX
+- Consider adding background sync for todo updates
+- Test PWA installation on mobile devices
+
+## [2026-04-01] Task 5: Prompt Engineering Module
+
+### Prompt Construction Patterns
+- Keep system prompts provider-agnostic by using plain text sections and JSON-like examples only.
+- Separate list serialization from instruction text so prompt behavior can evolve without changing context formatting.
+- Deterministic metadata ordering (alphabetical keys) makes prompt snapshots stable and easier to test.
+
+### Token-Efficient List State
+- Compact headers like `LIST:`, `GOAL:`, and `ITEMS:` reduce tokens while preserving clarity.
+- Use `[id]` prefixes on each item so the model can map fuzzy matches to tool-call IDs.
+- Render done items inline with `✓` to keep full context visible without extra sections.
+
+### Behavior Quality Improvements
+- Few-shot examples should cover both tool-calling and no-tool advisory replies to reduce generic outputs.
+- Explicit ambiguity rules improve safety by favoring clarification over incorrect completion calls.
+- Metadata inference instructions should name target keys and allowed values for better consistency.
+
+## [2026-04-01] Task 8: SplitScreen Layout
+
+### Next.js 15 Client Components with Dynamic Params
+- Client components must use `use(params)` (React 19 hook) to unwrap async dynamic route params - not `await`.
+- `'use client'` and `use()` are compatible; `useRouter` also works in the same component.
+- When converting an async Server Component to a Client Component, drop `async` and swap `await params` for `use(params)`.
+
+### Flex-Based Split Panel Layout
+- `flex-[N]` Tailwind utility sets `flex: N` on a panel, enabling proportional sizing without fixed pixel heights.
+- Setting `flex-[0] min-h-0` collapses a flex child to zero height while `transition-all duration-300` provides a smooth CSS animation.
+- `h-[100dvh]` is required over `h-screen` on mobile - `dvh` units account for the browser chrome/keyboard changing viewport height.
+- Panels need `overflow-hidden` on the collapsible container and `overflow-y-auto` on the scrollable inner div, not the outer.
+
+### LSP / Linting
+- Explicit `type="button"` is required on all `<button>` elements to satisfy Next.js ESLint rule (`react/button-has-type`).
+- Always run `lsp_diagnostics` on new component files before running `tsc` - faster feedback loop.
+
+### Dev Server Startup
+- Starting dev server before modified files are compiled results in a runtime ENOENT error. Always restart after file changes when the server was already running with old output.
+- The `.next/server/app/` path mirrors the `app/` directory - file not found at that path means the route was never compiled.
