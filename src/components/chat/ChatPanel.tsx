@@ -150,11 +150,37 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
           (message): message is UIMessage & { role: 'user' | 'assistant' } =>
             message.role === 'user' || message.role === 'assistant',
         )
-        .map(message => ({
-          id: message.id,
-          messageRole: message.role,
-          content: message.content,
-        })),
+        .map(message => {
+          function summarizeToolCalls(message: UIMessage): string {
+            if (message.content) return message.content
+            const toolParts = message.parts?.filter(p => p.type === 'tool-invocation') ?? []
+            if (toolParts.length === 0) return ''
+            const actions: string[] = []
+            for (const part of toolParts) {
+              const name = (part as any).toolInvocation?.toolName
+              switch (name) {
+                case 'addItems': actions.push('Added items'); break
+                case 'completeItems': actions.push('Checked off items'); break
+                case 'uncompleteItems': actions.push('Unchecked items'); break
+                case 'updateItem': actions.push('Updated item'); break
+                case 'deleteItems': actions.push('Removed items'); break
+                case 'addAndCompleteItems': actions.push('Added completed items'); break
+              }
+            }
+            return actions.length > 0 ? actions.join(', ') + '.' : 'Done!'
+          }
+
+          const content = message.role === 'assistant'
+            ? summarizeToolCalls(message)
+            : message.content
+
+          return {
+            id: message.id,
+            messageRole: message.role,
+            content,
+          }
+        })
+        .filter(msg => msg.content.trim() !== ''),
     [messages],
   )
 

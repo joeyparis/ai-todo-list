@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 
 interface SplitScreenProps {
@@ -12,6 +12,9 @@ interface SplitScreenProps {
 export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScreenProps) {
   const [listVisible, setListVisible] = useState(true)
   const [chatVisible, setChatVisible] = useState(true)
+  const [splitRatio, setSplitRatio] = useState(0.45)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const draggingRef = useRef(false)
 
   return (
     <div className="flex flex-col h-[100dvh] bg-white">
@@ -25,36 +28,62 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScr
         </Link>
       </header>
 
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div
+        ref={containerRef}
+        className="flex flex-col flex-1 overflow-hidden"
+        onPointerMove={e => {
+          if (!draggingRef.current || !containerRef.current) return
+          const rect = containerRef.current.getBoundingClientRect()
+          const ratio = (e.clientY - rect.top) / rect.height
+          const clamped = Math.min(0.85, Math.max(0.15, ratio))
+          setSplitRatio(clamped)
+        }}
+        onPointerUp={() => {
+          draggingRef.current = false
+        }}
+        onPointerLeave={() => {
+          draggingRef.current = false
+        }}
+      >
         <div
-          className={`flex flex-col overflow-hidden transition-all duration-300 ${
-            listVisible ? (chatVisible ? 'flex-[45]' : 'flex-1') : 'flex-[0] min-h-0'
-          }`}
+          className="flex flex-col overflow-hidden"
+          style={{ flex: listVisible ? splitRatio : 0 }}
         >
           <div className="flex-1 overflow-y-auto">
             {listVisible && listPanel}
           </div>
-          <button
-            type="button"
-            onClick={() => setListVisible(v => !v)}
-            className="flex-shrink-0 w-full py-1 text-xs text-gray-400 border-t border-gray-100 bg-gray-50 hover:bg-gray-100"
-          >
-            {listVisible ? '▲ Hide List' : '▼ Show List'}
-          </button>
+        </div>
+
+        <div className="flex flex-col items-stretch bg-gray-50 border-y border-gray-200">
+          <div
+            className="h-2 cursor-row-resize bg-gray-300"
+            style={{ touchAction: 'none' }}
+            onPointerDown={() => {
+              draggingRef.current = true
+            }}
+          />
+          <div className="flex text-xs text-gray-500">
+            <button
+              type="button"
+              onClick={() => setListVisible(v => !v)}
+              className="flex-1 py-1 hover:bg-gray-100"
+            >
+              {listVisible ? 'Hide List' : 'Show List'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setChatVisible(v => !v)}
+              className="flex-1 py-1 border-l border-gray-200 hover:bg-gray-100"
+            >
+              {chatVisible ? 'Hide Chat' : 'Show Chat'}
+            </button>
+          </div>
         </div>
 
         <div
-          className={`flex flex-col overflow-hidden transition-all duration-300 border-t border-gray-200 ${
-            chatVisible ? (listVisible ? 'flex-[55]' : 'flex-1') : 'flex-[0] min-h-0'
-          }`}
+          className="flex flex-col overflow-hidden"
+          style={{ flex: chatVisible ? 1 - splitRatio : 0 }}
         >
-          <button
-            type="button"
-            onClick={() => setChatVisible(v => !v)}
-            className="flex-shrink-0 w-full py-1 text-xs text-gray-400 border-b border-gray-100 bg-gray-50 hover:bg-gray-100"
-          >
-            {chatVisible ? '▼ Hide Chat' : '▲ Show Chat'}
-          </button>
           <div className="flex-1 overflow-y-auto flex flex-col">
             {chatVisible && chatPanel}
           </div>
