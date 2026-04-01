@@ -16,6 +16,7 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScr
   const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('vertical')
   const containerRef = useRef<HTMLDivElement | null>(null)
   const draggingRef = useRef(false)
+  const [isDragging, setIsDragging] = useState(false)
   const userOverrodeRef = useRef(false)
 
   function useMediaQuery(query: string): boolean {
@@ -51,9 +52,10 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScr
 
       <div
         ref={containerRef}
-        className={`flex ${orientation === 'vertical' ? 'flex-col' : 'flex-row'} flex-1 overflow-hidden`}
+        className={`flex ${orientation === 'vertical' ? 'flex-col' : 'flex-row'} flex-1 overflow-hidden ${isDragging ? 'select-none' : ''}`}
         onPointerMove={e => {
           if (!draggingRef.current || !containerRef.current) return
+          e.preventDefault()
           const rect = containerRef.current.getBoundingClientRect()
           const ratio = orientation === 'vertical'
             ? (e.clientY - rect.top) / rect.height
@@ -63,9 +65,11 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScr
         }}
         onPointerUp={() => {
           draggingRef.current = false
+          setIsDragging(false)
         }}
         onPointerLeave={() => {
           draggingRef.current = false
+          setIsDragging(false)
         }}
       >
         <div
@@ -94,6 +98,7 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScr
             style={{ touchAction: 'none' }}
             onPointerDown={() => {
               draggingRef.current = true
+              setIsDragging(true)
             }}
           >
             <span className="text-gray-600 text-xs select-none">
