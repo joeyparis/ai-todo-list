@@ -1,5 +1,5 @@
 import { streamText, convertToModelMessages } from 'ai'
-import type { UIMessage } from 'ai'
+import type { UIMessage, LanguageModel } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       listState?.items ?? [],
     )
 
-    let providerModel: any
+    let providerModel: LanguageModel
     switch (settings.provider) {
       case 'openai':
         providerModel = createOpenAI({ apiKey: settings.apiKey })(settings.model)
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       tools: todoTools,
     })
 
-    return (result as any).toDataStreamResponse()
+    return result.toTextStreamResponse()
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     const isAuthError =
