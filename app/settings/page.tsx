@@ -19,6 +19,27 @@ const PROVIDER_LABELS: Record<string, string> = {
   openrouter: 'OpenRouter',
 }
 
+const KEY_URLS: Record<string, { url: string; label: string }> = {
+  openai: { url: 'https://platform.openai.com/api-keys', label: 'Get your OpenAI API key' },
+  anthropic: { url: 'https://console.anthropic.com/settings/keys', label: 'Get your Anthropic API key' },
+  google: { url: 'https://aistudio.google.com/apikey', label: 'Get your Google AI Studio key' },
+  openrouter: { url: 'https://openrouter.ai/keys', label: 'Get your OpenRouter API key' },
+}
+
+const KEY_PREFIXES: Record<string, { prefix: string; example: string }> = {
+  openai: { prefix: 'sk-', example: 'sk-...' },
+  anthropic: { prefix: 'sk-ant-', example: 'sk-ant-...' },
+  google: { prefix: 'AI', example: 'AIza...' },
+  openrouter: { prefix: 'sk-or-', example: 'sk-or-...' },
+}
+
+const PROVIDER_HINTS: Record<string, string> = {
+  openai: 'Requires an OpenAI account with API credits. Free trial credits available for new accounts.',
+  anthropic: 'Requires an Anthropic account with API credits.',
+  google: 'Free tier available - 15 requests per minute through Google AI Studio.',
+  openrouter: 'Free models available! Create an account and select a :free model below.',
+}
+
 interface TestConnectionResponse {
   success?: boolean
   error?: string
@@ -80,6 +101,7 @@ export default function SettingsPage() {
   }
 
   const models = MODELS[provider] ?? []
+  const keyPrefix = KEY_PREFIXES[provider]
 
   return (
     <main className="min-h-screen bg-white">
@@ -109,6 +131,11 @@ export default function SettingsPage() {
                 <option key={value} value={value}>{label}</option>
               ))}
             </select>
+            {PROVIDER_HINTS[provider] && (
+              <p className="text-sm text-gray-500">
+                {PROVIDER_HINTS[provider]}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -134,6 +161,23 @@ export default function SettingsPage() {
                 {showKey ? 'Hide' : 'Show'}
               </button>
             </div>
+
+            {apiKey.length > 4 && keyPrefix && !apiKey.startsWith(keyPrefix.prefix) && (
+              <p className="text-xs text-amber-600 mt-1">
+                {PROVIDER_LABELS[provider]} keys usually start with &quot;{keyPrefix.prefix}&quot;. Double-check your key.
+              </p>
+            )}
+
+            {KEY_URLS[provider] && (
+              <a
+                href={KEY_URLS[provider].url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-500 hover:underline"
+              >
+                {KEY_URLS[provider].label} →
+              </a>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
