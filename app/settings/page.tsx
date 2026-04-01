@@ -78,14 +78,6 @@ export default function SettingsPage() {
     const next = { ...localConfigs, [provider]: updated }
     setLocalConfigs(next)
 
-    if (field === 'apiKey' && value.length > 4) {
-      const prefix = KEY_PREFIXES[provider]
-      const isGoogleOAuth = provider === 'google' && value.startsWith('ya29.')
-      if (prefix && !value.startsWith(prefix.prefix) && !isGoogleOAuth) {
-        return
-      }
-    }
-
     await saveProviderConfig(provider, updated)
     setSavedIndicator(prev => ({ ...prev, [provider]: true }))
     setTimeout(() => {
@@ -175,7 +167,6 @@ export default function SettingsPage() {
                   type="password"
                   value={cfg.apiKey}
                   onChange={(e) => handleChange(p, 'apiKey', e.target.value)}
-                  onBlur={(e) => handleChange(p, 'apiKey', e.target.value)}
                   placeholder={keyPrefix?.example}
                   className="w-full border rounded px-3 py-2 mb-2"
                 />
