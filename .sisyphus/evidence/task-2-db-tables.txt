@@ -1,0 +1,18 @@
+npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Running database tests...
+
+✓ createList - creates list with correct fields
+✓ deleteList - removes the list
+✓ updateList - updates name and goal, bumps updatedAt
+✓ addItems - creates items with correct fields, metadata, order, and completion state
+✓ addItems - subsequent adds increment order correctly
+✓ completeItems - marks items as completed with completedAt timestamp
+✓ uncompleteItems - reverts completion and clears completedAt
+✓ updateItem - updates text and metadata
+✓ deleteItems - removes specified items
+✓ addMessage - creates messages with correct fields
+✓ saveSettings - upserts singleton settings record
+✓ deleteList - cascades to remove items and messages
+✓ lists table - orderBy updatedAt desc works correctly
+
+All tests passed!
