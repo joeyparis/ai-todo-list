@@ -5,7 +5,7 @@ vi.mock('ai', async () => {
   return {
     ...(actual as any),
     streamText: vi.fn(() => ({
-      toTextStreamResponse: vi.fn(() => new Response('streamed text', { status: 200 })),
+      toUIMessageStreamResponse: vi.fn(() => new Response('streamed text', { status: 200 })),
     })),
     convertToModelMessages: vi.fn(async (msgs: any) => msgs),
   }

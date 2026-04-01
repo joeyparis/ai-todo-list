@@ -8,6 +8,8 @@ import { NextRequest } from 'next/server'
 import { buildSystemPrompt } from '@/lib/llm/prompts'
 import { todoTools } from '@/lib/llm/tools'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
       tools: todoTools,
     })
 
-    return result.toTextStreamResponse()
+    return result.toUIMessageStreamResponse()
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     const isAuthError =
