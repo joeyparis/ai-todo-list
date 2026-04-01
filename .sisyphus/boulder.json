@@ -1,113 +1,57 @@
 {
-  "active_plan": "/Users/joey/Sites/ai-todo-list/.sisyphus/plans/ai-todo-list.md",
-  "started_at": "2026-04-01T04:13:46.374Z",
+  "active_plan": "/Users/joey/Sites/ai-todo-list/.sisyphus/plans/testing-deep-dive.md",
+  "started_at": "2026-04-01T19:50:05.330Z",
   "session_ids": [
-    "ses_2b901e13cffeA85xTy98WoWNHK",
-    "ses_2b8bf2f02ffePDu7oLbFg62WbJ",
-    "ses_2b8bb01faffeuwAdsrVlszSmGY",
-    "ses_2b8bb4560ffezN6H7635nKYW6m",
-    "ses_2b8bb50b2ffeRgjxRo28hTeV7z",
-    "ses_2b8b656a2ffes4Q632sO58cjvA",
-    "ses_2b8b5c875ffezk2AxxbNf0qB9p",
-    "ses_2b8b1f943ffeoalEVUyEkmOqQT",
-    "ses_2b8b19c4effeOOj9waPS1O3s54",
-    "ses_2b8b13ea7ffeBrRqsAz5lTJS9r",
-    "ses_2b8b044ceffeQ7CMwSTG0Z3dI5",
-    "ses_2b8935e73ffeISiZ0tAz3zKnXR",
-    "ses_2b893b8f1ffeWCGQ2b9NPtVt9y",
-    "ses_2b894102effe36RS9vA0uTQqvF",
-    "ses_2b892eb4fffeGVUyIWeb5XBmcS",
-    "ses_2b8886eddffemmm3X9RhRya9HO",
-    "ses_2b8859ca0ffeGxKO89P0QQEQ3F",
-    "ses_2b88619fbffeaxq9I2CABWIjx7",
-    "ses_2b8852a94ffeEkhwWJpiknWXZi",
-    "ses_2b8739876ffe193946W4wVuQgZ",
-    "ses_2b8633f96ffePKXIip6rAh6LWf",
-    "ses_2b85de6a1ffe62Vpuo5sdF2oZJ",
-    "ses_2b85e7875ffemhlGsFu8EBiraP",
-    "ses_2b85ec7c1ffefXLNxgc72acjyr",
-    "ses_2b85e1f71ffe0LeaLacO3a4tQj",
-    "ses_2b853b709ffeMdEQGfxOROMYeC",
-    "ses_2b85402f9ffeW5sxBu1DwxXePc",
-    "ses_2b6ad1fcfffeIXY0d2dkK7Tdp2",
-    "ses_2b6ab81e9ffeQjFLxi01BWQNIN",
-    "ses_2b6ab0bc7ffeTFl2u5QVYfMdP9",
-    "ses_2b6aa9033ffenMHl9F5V22645V",
-    "ses_2b6805783ffeTlUbTrigsR5AO4"
+    "ses_2b5bf7da1ffeW2md0lwO8Qu25L",
+    "ses_2b564ae65ffefshhtAXM9W4C7C",
+    "ses_2b563d49affea3C6qdggXcaUFl",
+    "ses_2b56435f6ffefHdrC1636q1YA8",
+    "ses_2b564edeeffeHdQNRgd6A4ELwK",
+    "ses_2b55e0397ffeyF3MdSSasEPrpC",
+    "ses_2b55e7141ffeVxHzSJmGIWq4LG",
+    "ses_2b558c323ffeb8geH75duekNeO",
+    "ses_2b556b05bffe7K1WLQ2GpT0Ghg",
+    "ses_2b554fc08ffeo7XjpBDr1X03VF",
+    "ses_2b555ad3dffesK3cGpY9a1dA17"
   ],
-  "plan_name": "ai-todo-list",
+  "plan_name": "testing-deep-dive",
   "agent": "atlas",
   "task_sessions": {
     "todo:1": {
       "task_key": "todo:1",
       "task_label": "1",
-      "task_title": "Project Scaffold - Next.js + TypeScript + Tailwind",
-      "session_id": "ses_2b8bf2f02ffePDu7oLbFg62WbJ",
+      "task_title": "Set up Playwright test infrastructure",
+      "session_id": "ses_2b564edeeffeHdQNRgd6A4ELwK",
       "agent": "Sisyphus-Junior",
       "category": "quick",
-      "updated_at": "2026-04-01T04:17:44.185Z"
-    },
-    "todo:2": {
-      "task_key": "todo:2",
-      "task_label": "2",
-      "task_title": "Database Layer - Dexie.js Schema + Data Access Hooks",
-      "session_id": "ses_2b8bb50b2ffeRgjxRo28hTeV7z",
-      "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-04-01T04:23:52.275Z"
-    },
-    "todo:3": {
-      "task_key": "todo:3",
-      "task_label": "3",
-      "task_title": "PWA Manifest + Service Worker Setup",
-      "session_id": "ses_2b8b656a2ffes4Q632sO58cjvA",
-      "agent": "Sisyphus-Junior",
-      "category": "quick",
-      "updated_at": "2026-04-01T04:26:32.734Z"
+      "updated_at": "2026-04-01T19:57:12.501Z"
     },
     "todo:6": {
       "task_key": "todo:6",
       "task_label": "6",
-      "task_title": "Settings Page - API Key / Provider / Model Management",
-      "session_id": "ses_2b8886eddffemmm3X9RhRya9HO",
+      "task_title": "Fix settings page validation desync and redundant save",
+      "session_id": "ses_2b55e7141ffeVxHzSJmGIWq4LG",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-04-01T20:03:53.392Z"
+    },
+    "todo:8": {
+      "task_key": "todo:8",
+      "task_label": "8",
+      "task_title": "Stabilize initialMessages memo dependency in ChatPanel",
+      "session_id": "ses_2b558c323ffeb8geH75duekNeO",
       "agent": "Sisyphus-Junior",
       "category": "quick",
-      "updated_at": "2026-04-01T05:15:51.940Z"
+      "updated_at": "2026-04-01T20:07:02.827Z"
     },
-    "todo:11": {
-      "task_key": "todo:11",
-      "task_label": "11",
-      "task_title": "Chat Interface - Wire useChat + Message Persistence",
-      "session_id": "ses_2b88619fbffeaxq9I2CABWIjx7",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-04-01T05:20:16.089Z"
-    },
-    "todo:14": {
-      "task_key": "todo:14",
-      "task_label": "14",
-      "task_title": "Cross-Panel Integration - Chat Mutations Update List Reactively",
-      "session_id": "ses_2b8739876ffe193946W4wVuQgZ",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-04-01T05:39:14.857Z"
-    },
-    "todo:15": {
-      "task_key": "todo:15",
-      "task_label": "15",
-      "task_title": "Polish - Empty States, Error Handling, Onboarding, Mobile UX",
-      "session_id": "ses_2b8633f96ffePKXIip6rAh6LWf",
+    "todo:9": {
+      "task_key": "todo:9",
+      "task_label": "9",
+      "task_title": "E2E tests for onboarding and list management",
+      "session_id": "ses_2b556b05bffe7K1WLQ2GpT0Ghg",
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
-      "updated_at": "2026-04-01T05:59:51.723Z"
-    },
-    "final-wave:f1": {
-      "task_key": "final-wave:f1",
-      "task_label": "F1",
-      "task_title": "**Plan Compliance Audit** - `oracle`",
-      "session_id": "ses_2b85402f9ffeW5sxBu1DwxXePc",
-      "agent": "oracle",
-      "updated_at": "2026-04-01T06:13:53.976Z"
+      "updated_at": "2026-04-01T20:14:37.177Z"
     }
   }
 }
