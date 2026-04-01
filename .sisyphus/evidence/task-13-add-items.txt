@@ -1,0 +1,8 @@
+Running executor tests
+✓ Test 1: addItems creates items
+✓ Test 2: completeItems returns partial success for missing IDs
+✓ Test 3: uncompleteItems returns partial success for missing IDs
+✓ Test 4: invalid args fail with no DB mutation
+✓ Test 5: updateItem updates text and metadata
+✓ Test 6: deleteItems returns partial success for missing IDs
+✓ Test 7: addAndCompleteItems adds completed items

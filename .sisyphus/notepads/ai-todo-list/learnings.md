@@ -234,3 +234,112 @@
 ### Dev Server Startup
 - Starting dev server before modified files are compiled results in a runtime ENOENT error. Always restart after file changes when the server was already running with old output.
 - The `.next/server/app/` path mirrors the `app/` directory - file not found at that path means the route was never compiled.
+
+## [2026-04-01] Task 12: Todo Panel Components
+
+### MetadataBadges Pattern
+- Local sub-component in same file is fine for tight cohesion - `MetadataBadges` doesn't need its own file
+- `Object.entries(metadata)` gives ordered key-value pairs from `Record<string, unknown>`
+- Always `String(value)` to coerce unknown metadata values before display
+- Priority badge maps: `high -> red-100/red-700`, `medium -> yellow-100/yellow-700`, `low -> green-100/green-700`
+- Other known keys (location, effort, skipability) get emoji prefixes or small gray labels
+- Unknown keys fall back to `key: value` in gray text
+- Guard with `if (entries.length === 0) return null` to avoid empty div rendering
+
+### Touch Target Sizing
+- Checkbox buttons use `style={{ minWidth: '44px', minHeight: '44px', margin: '-9px' }}` trick: negative margin expands hit area without adding visual size
+- The visible button stays w-6 h-6 (24px) while the actual tap target is 44px - negative margin compensates for layout
+
+### Dexie useItems() Undefined Guard
+- `useItems(listId)` returns `Item[] | undefined` - undefined = loading, empty array = no items
+- Always check `items === undefined` separately from `items.length === 0` for correct loading vs empty state
+
+### Component File Organization
+- `src/components/todo/` directory groups all todo-specific UI
+- `TodoItem` is purely display - all mutations (completeItems, uncompleteItems) imported directly, no props for handlers
+- `AddItemInput` manages its own local state (`value`) and clears after successful add
+- `TodoPanel` composes TodoItem and AddItemInput - owns the items query and splits active/completed
+
+### Pre-existing TypeScript Errors
+- `src/components/chat/ChatPanel.tsx` had pre-existing tsc errors (from Task 10/11) - not introduced by Task 12
+- Always grep evidence file for your own filenames to confirm zero new errors before noting "clean"
+
+## [2026-04-01] Task 11: ChatPanel Integration
+
+### useChat v1 Request Shaping
+- `@ai-sdk/react@1.x` supports `experimental_prepareRequestBody`, which is the safest place to inject dynamic request body and trim context messages.
+- `body` passed into `useChat` can become stale for changing list state, so storing latest payload in a `useRef` and reading it inside `experimental_prepareRequestBody` keeps list/items/settings fresh on every send.
+- Message context trimming is cleanly enforced with `messages.slice(-20)` inside `experimental_prepareRequestBody`, so UI history can stay full while LLM context stays bounded.
+
+### Dexie and UI Message Hydration
+- Dexie `Message.parts` persisted as JSON string can be restored into AI SDK UI message `parts`; fallback to `[{ type: 'text', text: content }]` if parse fails.
+- `useMessages(listId)` resolves asynchronously, so one-time hydration needs `setMessages(...)` guarded by a `hasHydratedRef` flag once persisted messages are available.
+- Persist user messages immediately on send and assistant messages in `onFinish` for reload-safe transcript continuity.
+
+### Type Safety Notes
+- In this SDK version, `useChat` `onFinish` signature is `onFinish(message, options)`, not a single object argument.
+- `ChatMessages` expects `messageRole`, so mapped chat messages need a role-narrowing filter to `'user' | 'assistant'` before rendering.
+
+## [2026-04-01] Task 13: LLM Executor Trust Boundary
+
+### Validation and Mutation Safety
+- Reuse `todoTools.<tool>.parameters.parse(args)` in executor so runtime validation exactly matches the LLM tool contract.
+- Catch `z.ZodError` centrally and return `Invalid arguments: ...` to prevent any mutation on malformed payloads.
+- Keep mutation calls behind validated branching only, so untrusted LLM output never reaches Dexie writes directly.
+
+### Partial Success Pattern for Batch IDs
+- For `completeItems`, `uncompleteItems`, and `deleteItems`, prefetch existing IDs via `db.items.where('id').anyOf(itemIds).toArray()`.
+- Split IDs into `existingIds` and `missingIds`, mutate only existing IDs, and return `notFound` for missing IDs.
+- This keeps batch operations resilient and avoids full-request failure when a subset of IDs is stale.
+
+### Node QA Script Pattern
+- `fake-indexeddb/auto` must remain the first import in script-based tests.
+- Use fail-fast assertions with `if (!condition) process.exit(1)` style checks for deterministic CI behavior.
+- Persist script output to `.sisyphus/evidence/task-13-add-items.txt` inside the test script so evidence is always produced with the run.
+
+## [2026-04-01] Task 14: Wired List View + Chat Tool Execution
+
+### Page Wiring Pattern for `app/list/[id]/page.tsx`
+- Use `use(params)` in client route pages to read dynamic list IDs in Next.js 15.
+- `useList(id)` must handle three states explicitly: `undefined` (loading), `null` (not found), and populated list.
+- Redirect deleted/missing lists with `router.push('/')` and return `null` immediately to avoid rendering stale panel UI.
+- Compose final page through `SplitScreen` and pass concrete panel components instead of placeholders.
+
+### AI SDK Tool Call Bridge in `ChatPanel`
+- `useChat` supports `onToolCall`, which is the handoff point from model tool invocations to local app mutations.
+- Wiring `executeToolCall(toolCall.toolName, toolCall.args, listId)` directly in `onToolCall` keeps list-scoped mutations bounded by route context.
+- Returning executor results from `onToolCall` feeds structured mutation outcomes back to the model for follow-up assistant responses.
+
+### Reactive Dexie Flow
+- `TodoPanel` reads items through `useItems(listId)` backed by `useLiveQuery`, so Dexie writes from chat tool execution auto-refresh UI without manual sync.
+- Brain-dump prompts map to `addItems` tool calls and completion prompts map to `completeItems`; both become immediate UI updates through Dexie reactivity.
+
+### AI SDK Deprecation Cleanup
+- `useChat().isLoading` is deprecated in current typings; use `status` and derive loading as `status === 'submitted' || status === 'streaming'`.
+
+## [2026-04-01] Task 15: Polish - Empty States, Error Handling, Mobile UX
+
+### Dev Artifact Cleanup
+- `tsx` can be removed from devDependencies once all test scripts are deleted - it was only needed to run `.ts` scripts directly with `npx tsx`
+- Removing the `app/dev/` directory removes those routes from the Next.js build output automatically - no config changes needed
+
+### Empty States Already Present
+- All 3 key empty states were already implemented in previous tasks:
+  - `app/page.tsx`: "No lists yet." + CTA button
+  - `TodoPanel.tsx`: "No items yet. Use the chat below to brain dump your tasks!"
+  - `ChatMessages.tsx`: "Start by telling me what you need to get done"
+- The missing API key warning banner in `ChatPanel.tsx` redirects user to settings inline
+
+### Mobile Overflow Prevention
+- Adding `overflow-x: hidden` + `max-width: 100%` to `html, body` in `globals.css` is the safest global guard against accidental horizontal scroll
+- Verified at 375px with Playwright: all pages had `scrollWidth <= 375` after this change
+- `max-w-lg mx-auto` containers naturally constrain at narrow viewports but need the body guard for edge cases
+
+### Favicon Pattern for Next.js PWA Apps
+- Since icons already exist at `public/icons/icon-192.png` for the PWA manifest, just add `<link rel="icon" href="/icons/icon-192.png" />` to `app/layout.tsx` - no need to create a separate `favicon.ico`
+- Next.js App Router supports `<link rel="icon">` directly in the `<head>` inside `layout.tsx`
+
+### Mobile Viewport QA with Playwright
+- `page.evaluate(() => document.body.scrollWidth)` after navigation to each route checks for overflow
+- `/list/test-id` redirects to `/` for non-existent IDs (expected Dexie null handling) - use `waitUntil: 'domcontentloaded'` + try/catch to still capture scroll width before redirect fires
+- Screenshot evidence saved to `.sisyphus/evidence/task-15-mobile-viewport.png`

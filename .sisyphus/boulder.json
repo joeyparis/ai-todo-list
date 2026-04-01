@@ -12,7 +12,16 @@
     "ses_2b8b1f943ffeoalEVUyEkmOqQT",
     "ses_2b8b19c4effeOOj9waPS1O3s54",
     "ses_2b8b13ea7ffeBrRqsAz5lTJS9r",
-    "ses_2b8b044ceffeQ7CMwSTG0Z3dI5"
+    "ses_2b8b044ceffeQ7CMwSTG0Z3dI5",
+    "ses_2b8935e73ffeISiZ0tAz3zKnXR",
+    "ses_2b893b8f1ffeWCGQ2b9NPtVt9y",
+    "ses_2b894102effe36RS9vA0uTQqvF",
+    "ses_2b892eb4fffeGVUyIWeb5XBmcS",
+    "ses_2b8886eddffemmm3X9RhRya9HO",
+    "ses_2b8859ca0ffeGxKO89P0QQEQ3F",
+    "ses_2b88619fbffeaxq9I2CABWIjx7",
+    "ses_2b8852a94ffeEkhwWJpiknWXZi",
+    "ses_2b8739876ffe193946W4wVuQgZ"
   ],
   "plan_name": "ai-todo-list",
   "agent": "atlas",
@@ -48,10 +57,28 @@
       "task_key": "todo:6",
       "task_label": "6",
       "task_title": "Settings Page - API Key / Provider / Model Management",
-      "session_id": "ses_2b8b13ea7ffeBrRqsAz5lTJS9r",
+      "session_id": "ses_2b8886eddffemmm3X9RhRya9HO",
       "agent": "Sisyphus-Junior",
-      "category": "visual-engineering",
-      "updated_at": "2026-04-01T04:30:38.095Z"
+      "category": "quick",
+      "updated_at": "2026-04-01T05:15:51.940Z"
+    },
+    "todo:11": {
+      "task_key": "todo:11",
+      "task_label": "11",
+      "task_title": "Chat Interface - Wire useChat + Message Persistence",
+      "session_id": "ses_2b88619fbffeaxq9I2CABWIjx7",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-04-01T05:20:16.089Z"
+    },
+    "todo:14": {
+      "task_key": "todo:14",
+      "task_label": "14",
+      "task_title": "Cross-Panel Integration - Chat Mutations Update List Reactively",
+      "session_id": "ses_2b8739876ffe193946W4wVuQgZ",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-04-01T05:39:14.857Z"
     }
   }
 }

@@ -458,7 +458,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `src/lib/db/index.ts, src/lib/db/types.ts, src/lib/db/hooks.ts, src/lib/db/mutations.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 3. PWA Manifest + Service Worker Setup
+- [x] 3. PWA Manifest + Service Worker Setup
 
   **What to do**:
   - Install `@serwist/next` and configure in `next.config.ts`
@@ -621,7 +621,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `src/lib/llm/tools.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 5. System Prompt Engineering - Todo Management AI Behavior
+- [x] 5. System Prompt Engineering - Todo Management AI Behavior
 
   **What to do**:
   - Create `src/lib/llm/prompts.ts` with functions that generate system prompts
@@ -707,7 +707,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `src/lib/llm/prompts.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 6. Settings Page - API Key / Provider / Model Management
+- [x] 6. Settings Page - API Key / Provider / Model Management
 
   **What to do**:
   - Build `app/settings/page.tsx` as a clean mobile-friendly form
@@ -805,7 +805,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `app/settings/page.tsx, app/api/test-connection/route.ts, src/components/settings/*`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 7. List Index Page - CRUD + Navigation
+- [x] 7. List Index Page - CRUD + Navigation
 
   **What to do**:
   - Build `app/page.tsx` as the home/index page showing all lists
@@ -899,7 +899,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `app/page.tsx, src/components/lists/*`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 8. Split-Screen Layout Component - Collapsible Dual Panels
+- [x] 8. Split-Screen Layout Component - Collapsible Dual Panels
 
   **What to do**:
   - Create `src/components/SplitScreen.tsx` - a layout component used by `app/list/[id]/page.tsx`
@@ -991,7 +991,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `src/components/SplitScreen.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 9. LLM API Route + Streaming - Chat Endpoint with Tool Calling
+- [x] 9. LLM API Route + Streaming - Chat Endpoint with Tool Calling
 
   **What to do**:
   - Create `app/api/chat/route.ts` as a Next.js API route (App Router POST handler)
@@ -1098,7 +1098,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `app/api/chat/route.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 10. Chat UI Components - Messages, Input, Streaming Display
+- [x] 10. Chat UI Components - Messages, Input, Streaming Display
 
   **What to do**:
   - Create `src/components/chat/ChatMessages.tsx` - scrollable message list:
@@ -1183,7 +1183,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `src/components/chat/ChatMessages.tsx, src/components/chat/ChatInput.tsx, src/components/chat/ChatBubble.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 11. Chat Interface - Wire useChat + Message Persistence
+- [x] 11. Chat Interface - Wire useChat + Message Persistence
 
   **What to do**:
   - Build the chat integration in `app/list/[id]/page.tsx` (or a dedicated `ChatPanel` wrapper component)
@@ -1290,7 +1290,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `app/list/[id]/page.tsx, src/components/chat/*`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 12. Todo List Panel - Items, Manual Toggle, Metadata Badges
+- [x] 12. Todo List Panel - Items, Manual Toggle, Metadata Badges
 
   **What to do**:
   - Create `src/components/todo/TodoPanel.tsx` - the top panel content for the split-screen
@@ -1412,7 +1412,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `src/components/todo/TodoPanel.tsx, src/components/todo/TodoItem.tsx, src/components/todo/AddItemInput.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 13. Tool Execution Engine - Validate + Mutate Dexie
+- [x] 13. Tool Execution Engine - Validate + Mutate Dexie
 
   **What to do**:
   - Create `src/lib/llm/executor.ts` - the bridge between LLM tool calls and database mutations
@@ -1527,7 +1527,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `src/lib/llm/executor.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 14. Cross-Panel Integration - Chat Mutations Update List Reactively
+- [x] 14. Cross-Panel Integration - Chat Mutations Update List Reactively
 
   **What to do**:
   - Wire the tool execution engine (Task 13) into the chat flow (Task 11):
