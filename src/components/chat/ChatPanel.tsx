@@ -78,13 +78,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
   }, [items, list, activeProvider, activeConfig])
 
   const chat = useChat({
-    initialMessages,
-    experimental_prepareRequestBody: ({ id, messages: requestMessages, requestBody }: any) => ({
-      id,
-      ...(requestBody ?? {}),
-      messages: requestMessages.slice(-20),
-      ...latestBodyRef.current,
-    }),
+    messages: initialMessages,
     onFinish: async (message: any) => {
       if (message.role !== 'assistant') {
         return
@@ -100,7 +94,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
     onToolCall: async ({ toolCall }: any) => {
       await executeToolCall(toolCall.toolName, toolCall.args, listId)
     },
-  } as any) as any
+  })
 
   const { messages, setMessages, status, error } = chat
 
@@ -123,19 +117,19 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       const userParts: UIMessage['parts'] = [{ type: 'text', text: content }]
       await addMessage(listId, 'user', content, JSON.stringify(userParts))
 
-      await chat.append(
+      await chat.sendMessage(
         {
-          id: crypto.randomUUID(),
-          role: 'user',
-          content,
-          parts: userParts,
+          text: content,
         },
         {
-          body: latestBodyRef.current,
+          body: {
+            messages: chat.messages.slice(-20),
+            ...latestBodyRef.current,
+          },
         },
       )
     },
-    [chat.append, listId, activeConfig?.apiKey],
+    [chat, listId, activeConfig?.apiKey],
   )
 
   const viewMessages = useMemo(
