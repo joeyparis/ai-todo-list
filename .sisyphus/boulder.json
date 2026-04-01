@@ -2,8 +2,32 @@
   "active_plan": "/Users/joey/Sites/ai-todo-list/.sisyphus/plans/ai-todo-list.md",
   "started_at": "2026-04-01T04:13:46.374Z",
   "session_ids": [
-    "ses_2b901e13cffeA85xTy98WoWNHK"
+    "ses_2b901e13cffeA85xTy98WoWNHK",
+    "ses_2b8bf2f02ffePDu7oLbFg62WbJ",
+    "ses_2b8bb01faffeuwAdsrVlszSmGY",
+    "ses_2b8bb4560ffezN6H7635nKYW6m",
+    "ses_2b8bb50b2ffeRgjxRo28hTeV7z"
   ],
   "plan_name": "ai-todo-list",
-  "agent": "atlas"
+  "agent": "atlas",
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "Project Scaffold - Next.js + TypeScript + Tailwind",
+      "session_id": "ses_2b8bf2f02ffePDu7oLbFg62WbJ",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-04-01T04:17:44.185Z"
+    },
+    "todo:2": {
+      "task_key": "todo:2",
+      "task_label": "2",
+      "task_title": "Database Layer - Dexie.js Schema + Data Access Hooks",
+      "session_id": "ses_2b8bb50b2ffeRgjxRo28hTeV7z",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-04-01T04:23:52.275Z"
+    }
+  }
 }

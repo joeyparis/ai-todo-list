@@ -254,7 +254,7 @@ Max Concurrent: 5 (Waves 2 & 3)
 > Implementation tasks below. Each includes agent profile, parallelization info, references, and QA scenarios.
 > **A task WITHOUT QA Scenarios is INCOMPLETE. No exceptions.**
 
-- [ ] 1. Project Scaffold - Next.js + TypeScript + Tailwind
+- [x] 1. Project Scaffold - Next.js + TypeScript + Tailwind
 
   **What to do**:
   - Initialize Next.js 14+ project with App Router and TypeScript (strict mode)
@@ -345,7 +345,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `package.json, tsconfig.json, tailwind.config.ts, app/layout.tsx, app/page.tsx, app/list/[id]/page.tsx, app/settings/page.tsx, src/lib/, src/components/`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 2. Database Layer - Dexie.js Schema + Data Access Hooks
+- [x] 2. Database Layer - Dexie.js Schema + Data Access Hooks
 
   **What to do**:
   - Create Dexie database class in `src/lib/db/index.ts` with typed schema
@@ -539,7 +539,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `public/manifest.json, public/icons/*, next.config.ts (updated), app/layout.tsx (meta tags)`
   - Pre-commit: `npm run build`
 
-- [ ] 4. LLM Tool Schemas - Zod Definitions for All 6 Tools
+- [x] 4. LLM Tool Schemas - Zod Definitions for All 6 Tools
 
   **What to do**:
   - Create `src/lib/llm/tools.ts` defining Zod schemas and tool declarations for:
