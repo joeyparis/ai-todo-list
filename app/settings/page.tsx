@@ -52,6 +52,7 @@ export default function SettingsPage() {
   const [activeProvider, setActiveProviderState] = useState('openai')
   const [isTesting, setIsTesting] = useState(false)
   const [status, setStatus] = useState<Record<string, string>>({})
+  const [testResults, setTestResults] = useState<Record<string, 'pass' | 'fail'>>({})
 
   
 
@@ -72,6 +73,13 @@ export default function SettingsPage() {
   }
 
   async function handleChange(provider: string, field: 'apiKey' | 'model', value: string) {
+    if (field === 'apiKey') {
+      setTestResults(prev => {
+        const next = { ...prev }
+        delete next[provider]
+        return next
+      })
+    }
     const existing = localConfigs[provider] || { apiKey: '', model: MODELS[provider][0] }
     const updated = { ...existing, [field]: value }
     const next = { ...localConfigs, [provider]: updated }
@@ -91,11 +99,14 @@ export default function SettingsPage() {
       const data = await res.json() as TestConnectionResponse
       if (res.ok && data.success) {
         setStatus(prev => ({ ...prev, [provider]: 'Connected!' }))
+        setTestResults(prev => ({ ...prev, [provider]: 'pass' }))
       } else {
         setStatus(prev => ({ ...prev, [provider]: data.error ?? 'Connection failed' }))
+        setTestResults(prev => ({ ...prev, [provider]: 'fail' }))
       }
     } catch {
       setStatus(prev => ({ ...prev, [provider]: 'Network error' }))
+      setTestResults(prev => ({ ...prev, [provider]: 'fail' }))
     } finally {
       setIsTesting(false)
     }
@@ -117,7 +128,6 @@ export default function SettingsPage() {
 
         <div className="flex gap-2 mb-6 flex-wrap">
           {providers.map(p => {
-            const hasKey = !!localConfigs[p]?.apiKey
             const isActive = activeProvider === p
             return (
               <button
@@ -130,7 +140,8 @@ export default function SettingsPage() {
                     : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                {hasKey && <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />}
+                {testResults[p] === 'pass' && <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />}
+                {testResults[p] === 'fail' && <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />}
                 {PROVIDER_LABELS[p]}
               </button>
             )
