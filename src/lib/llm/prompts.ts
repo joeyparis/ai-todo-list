@@ -28,7 +28,7 @@ export function serializeListState(list: ListContext, items: ItemContext[]): str
   const goalLine = list.goal?.trim() ? `\nGOAL:${list.goal.trim()}` : ''
 
   const lines = items.map(item => {
-const statusPrefix = item.completed ? '[done] ' : ''
+    const statusPrefix = item.completed ? '[done] ' : ''
     const metadataEntries = Object.entries(item.metadata ?? {})
       .filter(([, value]) => value !== undefined)
       .sort(([a], [b]) => a.localeCompare(b))

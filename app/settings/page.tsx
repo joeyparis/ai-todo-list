@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSettings } from '@/lib/db/hooks'
 import { saveProviderConfig, setActiveProvider } from '@/lib/db/mutations'
-import dynamic from 'next/dynamic'
 
 const MODELS: Record<string, string[]> = {
   openai: ['gpt-4o', 'gpt-4o-mini'],
@@ -54,13 +53,6 @@ export default function SettingsPage() {
   const [status, setStatus] = useState<Record<string, string>>({})
   const [testResults, setTestResults] = useState<Record<string, 'pass' | 'fail'>>({})
   const [savedIndicator, setSavedIndicator] = useState<Record<string, boolean>>({})
-
-  
-
-  const GoogleSignInButton = dynamic(
-    () => import('@/components/GoogleSignInButton').then(mod => ({ default: mod.GoogleSignInButton })),
-    { ssr: false }
-  )
 
   useEffect(() => {
     if (!settings) return
