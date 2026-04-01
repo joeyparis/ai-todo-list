@@ -49,8 +49,16 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
   const activeProvider = settings?.activeProvider
   const activeConfig = activeProvider ? settings?.providerConfigs?.[activeProvider] : undefined
 
+  const persistedMessagesRef = useRef<typeof persistedMessages>(undefined)
   const initialMessages = useMemo(() => {
     if (!persistedMessages) return []
+    // Only recompute when message IDs actually changed (not just new array reference)
+    const prevIds = persistedMessagesRef.current?.map(m => m.id).join(',') ?? ''
+    const currIds = persistedMessages.map(m => m.id).join(',')
+    if (prevIds === currIds && persistedMessagesRef.current !== undefined) {
+      return (persistedMessagesRef.current ?? []).map(toUIMessage)
+    }
+    persistedMessagesRef.current = persistedMessages
     return persistedMessages.map(toUIMessage)
   }, [persistedMessages])
 
