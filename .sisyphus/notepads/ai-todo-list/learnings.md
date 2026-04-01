@@ -181,6 +181,39 @@
 - Explicit ambiguity rules improve safety by favoring clarification over incorrect completion calls.
 - Metadata inference instructions should name target keys and allowed values for better consistency.
 
+## [2026-04-01] Task 6: Settings Page
+
+### useSettings() Hook Pattern
+- `useSettings()` returns `Settings | undefined` - undefined means still loading, not "no settings"
+- Use a `loaded` flag in state to only sync from Dexie into local form state ONCE on first load, avoiding overwriting user edits on subsequent Dexie re-renders
+- Pattern: `if (settings && !loaded) { setProvider(...); setLoaded(true) }`
+
+### Provider/Model Cascade Pattern
+- When provider changes, check if current model is valid for new provider - if not, reset to first available model
+- `MODELS[provider] ?? []` - always guard with nullish coalescing when using a Record as a lookup
+
+### TypeScript Strict Mode Edge Cases
+- `||` and `??` cannot be mixed without parentheses: `a || b ?? c` is a compile error - use `a || (b ?? c)` instead
+- `res.json()` returns `Promise<any>` - asserting with `as InterfaceName` is clean and valid without `@ts-ignore`
+- Defining a local `interface TestConnectionResponse` keeps the cast explicit and readable
+
+### AI SDK Provider Initialization
+- `createOpenAI({ apiKey })(model)` and `createAnthropic({ apiKey })(model)` both create provider-specific language models
+- `generateText({ model, prompt, maxTokens })` works with both providers - unified interface from `ai` package
+- Auth errors from providers typically include "auth", "key", "401", or "unauthorized" in the error message - case-insensitive check covers all variants
+
+### Mobile Form Design Patterns
+- `style={{ height: '48px' }}` for all interactive elements guarantees 44px+ touch targets on iOS
+- 16px+ (`text-base`) prevents iOS Safari auto-zoom on input focus
+- `disabled:opacity-50 disabled:cursor-not-allowed` provides clear visual feedback for disabled buttons
+- Password toggle pattern: `type={showKey ? 'text' : 'password'}` on input, dedicated button with Show/Hide label
+
+### Next.js App Router + Chrome Headless Screenshot Timing
+- Chrome headless `--screenshot` can capture 404 on first hit if Next.js hasn't compiled the route yet
+- Always curl the page first to trigger compilation, then take the screenshot
+- The `--virtual-time-budget=N` flag helps Chrome wait for async content before screenshotting
+- HTTP 200 from curl confirms the route is registered and compiled - safe to screenshot after
+
 ## [2026-04-01] Task 8: SplitScreen Layout
 
 ### Next.js 15 Client Components with Dynamic Params
