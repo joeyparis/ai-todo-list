@@ -142,6 +142,28 @@
 - Consider adding background sync for todo updates
 - Test PWA installation on mobile devices
 
+## [2026-04-01] Task 7: List Index Page
+
+### useLists() with Dexie React Hooks
+- `useLists()` returns `undefined` while Dexie initializes IndexedDB - always handle loading state before rendering
+- `useLiveQuery` is async; in Playwright headless mode the JS needs ~2-3 seconds after `networkidle` to finish rendering
+- Checking `isVisible()` immediately after `waitForLoadState('networkidle')` can return `false` even when content is correct - always add `waitForTimeout` or `waitForSelector` for Dexie-backed pages
+
+### Interactive Elements and Biome Accessibility Rules
+- `<div onClick>` triggers two Biome errors: "Static Elements should not be interactive" and missing keyboard event - use `<button type="button">` instead
+- `autoFocus` attribute is flagged by Biome a11y rules - omit it or use `useEffect` with a ref
+- All `<button>` elements need explicit `type="button"` or `type="submit"` to avoid Biome warnings
+- Menu buttons inside cards must call `e.stopPropagation()` to prevent triggering parent card navigation
+
+### Dialog Handling in Playwright
+- `window.confirm()` and `window.prompt()` create Playwright dialogs - register `page.once('dialog', ...)` BEFORE clicking the action that triggers the dialog, not after
+- `page.on('dialog', ...)` listens for all dialogs; `page.once('dialog', ...)` handles a single one
+
+### Client Component Architecture
+- `'use client'` required at top of any file using React hooks (`useState`, `useRouter`, etc.)
+- `useRouter` from `next/navigation` for programmatic navigation in client components
+- Forms submit via `onSubmit` with `e.preventDefault()` - keeps navigation in JavaScript control
+
 ## [2026-04-01] Task 5: Prompt Engineering Module
 
 ### Prompt Construction Patterns
