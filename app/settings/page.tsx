@@ -84,6 +84,15 @@ export default function SettingsPage() {
     const updated = { ...existing, [field]: value }
     const next = { ...localConfigs, [provider]: updated }
     setLocalConfigs(next)
+
+    if (field === 'apiKey' && value.length > 4) {
+      const prefix = KEY_PREFIXES[provider]
+      const isGoogleOAuth = provider === 'google' && value.startsWith('ya29.')
+      if (prefix && !value.startsWith(prefix.prefix) && !isGoogleOAuth) {
+        return
+      }
+    }
+
     await saveProviderConfig(provider, updated)
   }
 
@@ -168,6 +177,12 @@ export default function SettingsPage() {
                   placeholder={keyPrefix?.example}
                   className="w-full border rounded px-3 py-2 mb-2"
                 />
+
+                {cfg.apiKey.length > 4 && keyPrefix && !cfg.apiKey.startsWith(keyPrefix.prefix) && !(p === 'google' && cfg.apiKey.startsWith('ya29.')) && (
+                  <p className="text-xs text-amber-600 mb-2">
+                    {PROVIDER_LABELS[p]} keys usually start with &quot;{keyPrefix.prefix}&quot;. Double-check your key.
+                  </p>
+                )}
 
                 <select
                   value={cfg.model}
