@@ -1,4 +1,4 @@
-import { streamText, convertToModelMessages, stepCountIs } from 'ai'
+import { streamText, convertToModelMessages } from 'ai'
 import type { UIMessage, LanguageModel } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createAnthropic } from '@ai-sdk/anthropic'
@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
       system: systemPrompt,
       messages: coreMessages,
       tools: todoTools,
-      stopWhen: stepCountIs(3),
     })
 
     return result.toUIMessageStreamResponse()
