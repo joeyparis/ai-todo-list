@@ -343,3 +343,8 @@
 - `page.evaluate(() => document.body.scrollWidth)` after navigation to each route checks for overflow
 - `/list/test-id` redirects to `/` for non-existent IDs (expected Dexie null handling) - use `waitUntil: 'domcontentloaded'` + try/catch to still capture scroll width before redirect fires
 - Screenshot evidence saved to `.sisyphus/evidence/task-15-mobile-viewport.png`
+
+## 2026-04-01 Plan compliance audit
+- Must-have and deliverable checks passed across split-screen UI, chat/tooling, local settings, IndexedDB, and PWA manifest.
+- Guardrail searches were clean for Supabase, task scheduling features, drag-and-drop, markdown rendering, export/import UI, and push/background sync.
+- Note: auth-related grep hits in app/ were only API key error handling strings, not account/auth flows.

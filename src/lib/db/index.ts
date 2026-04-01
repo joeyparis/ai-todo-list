@@ -15,6 +15,28 @@ export class TodoDatabase extends Dexie {
       messages: 'id, listId, createdAt',
       settings: 'id',
     })
+
+    this.version(2).stores({
+      lists: 'id, updatedAt',
+      items: 'id, listId, order',
+      messages: 'id, listId, createdAt',
+      settings: 'id',
+    }).upgrade(tx => {
+      return tx.table('settings').toCollection().modify((setting: any) => {
+        if (setting.provider && setting.apiKey) {
+          setting.activeProvider = setting.provider
+          setting.providerConfigs = {
+            [setting.provider]: {
+              apiKey: setting.apiKey,
+              model: setting.model || ''
+            }
+          }
+          delete setting.provider
+          delete setting.apiKey
+          delete setting.model
+        }
+      })
+    })
   }
 }
 

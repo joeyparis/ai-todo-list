@@ -1,5 +1,5 @@
-import { streamText, convertToCoreMessages } from 'ai'
-import type { Message } from 'ai'
+import { streamText, convertToModelMessages } from 'ai'
+import type { UIMessage } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
@@ -47,27 +47,16 @@ export async function POST(req: NextRequest) {
         return Response.json({ error: 'Unsupported provider' }, { status: 400 })
     }
 
-    const coreMessages = convertToCoreMessages(messages as Omit<Message, 'id'>[])
+    const coreMessages = await convertToModelMessages(messages as Omit<UIMessage, 'id'>[])
 
     const result = streamText({
       model: providerModel,
       system: systemPrompt,
       messages: coreMessages,
       tools: todoTools,
-      maxSteps: 5,
     })
 
-    return result.toDataStreamResponse({
-      getErrorMessage: (error: unknown) => {
-        const message = error instanceof Error ? error.message : 'Unknown error'
-        const isAuth =
-          message.includes('401') ||
-          message.toLowerCase().includes('unauthorized') ||
-          message.toLowerCase().includes('api key') ||
-          message.toLowerCase().includes('authentication')
-        return isAuth ? 'Invalid API key' : message
-      },
-    })
+    return result.toTextStreamResponse()
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     const isAuthError =

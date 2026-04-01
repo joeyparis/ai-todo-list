@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSettings } from '@/lib/db/hooks'
-import { saveSettings } from '@/lib/db/mutations'
+import { saveProviderConfig, setActiveProvider } from '@/lib/db/mutations'
 import dynamic from 'next/dynamic'
 
 const MODELS: Record<string, string[]> = {
@@ -48,13 +48,20 @@ interface TestConnectionResponse {
 
 export default function SettingsPage() {
   const settings = useSettings()
-  const [provider, setProvider] = useState('openai')
-  const [apiKey, setApiKey] = useState('')
-  const [model, setModel] = useState(MODELS['openai'][0] ?? '')
-  const [showKey, setShowKey] = useState(false)
-  const [status, setStatus] = useState('')
+  const [localConfigs, setLocalConfigs] = useState<Record<string, { apiKey: string; model: string }>>({})
+  const [activeProvider, setActiveProviderState] = useState('openai')
   const [isTesting, setIsTesting] = useState(false)
-  const [loaded, setLoaded] = useState(false)
+  const [status, setStatus] = useState('')
+  const [showKey, setShowKey] = useState(false)
+  const [apiKey, setApiKey] = useState('')
+  const [model, setModel] = useState('')
+  const provider = activeProvider
+  const keyPrefix = KEY_PREFIXES[provider]
+  const models = MODELS[provider]
+
+  async function handleSave() {
+    setStatus('Saved!')
+  }
 
   const GoogleSignInButton = dynamic(
     () => import('@/components/GoogleSignInButton').then(mod => ({ default: mod.GoogleSignInButton })),
@@ -62,36 +69,32 @@ export default function SettingsPage() {
   )
 
   useEffect(() => {
-    if (settings && !loaded) {
-      setProvider(settings.provider || 'openai')
-      setApiKey(settings.apiKey || '')
-      setModel(settings.model || (MODELS['openai'][0] ?? ''))
-      setLoaded(true)
-    }
-  }, [settings, loaded])
+    if (!settings) return
+    setLocalConfigs(settings.providerConfigs || {})
+    setActiveProviderState(settings.activeProvider || 'openai')
+  }, [settings])
 
-  function handleProviderChange(newProvider: string) {
-    setProvider(newProvider)
-    const models = MODELS[newProvider] ?? []
-    if (!models.includes(model)) {
-      setModel(models[0] ?? '')
-    }
+  async function handleSetActive(provider: string) {
+    setActiveProviderState(provider)
+    await setActiveProvider(provider)
   }
 
-  async function handleSave() {
-    await saveSettings({ provider, apiKey, model })
-    setStatus('Saved!')
-    setTimeout(() => setStatus(''), 3000)
+  async function handleChange(provider: string, field: 'apiKey' | 'model', value: string) {
+    const existing = localConfigs[provider] || { apiKey: '', model: MODELS[provider][0] }
+    const updated = { ...existing, [field]: value }
+    const next = { ...localConfigs, [provider]: updated }
+    setLocalConfigs(next)
+    await saveProviderConfig(provider, updated)
   }
 
-  async function handleTestConnection() {
+  async function handleTestConnection(provider: string) {
     setIsTesting(true)
     setStatus('')
     try {
       const res = await fetch('/api/test-connection', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, apiKey, model }),
+        body: JSON.stringify({ provider, ...localConfigs[provider] }),
       })
       const data = await res.json() as TestConnectionResponse
       if (res.ok && data.success) {
@@ -106,8 +109,7 @@ export default function SettingsPage() {
     }
   }
 
-  const models = MODELS[provider] ?? []
-  const keyPrefix = KEY_PREFIXES[provider]
+  const providers = Object.keys(PROVIDER_LABELS)
 
   return (
     <main className="min-h-screen bg-white">
@@ -121,28 +123,56 @@ export default function SettingsPage() {
 
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="provider" className="text-base font-medium">
-              Provider
-            </label>
-            <select
-              id="provider"
-              value={provider}
-              onChange={(e) => handleProviderChange(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 text-base bg-white"
-              style={{ height: '48px' }}
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {providers.map(p => (
+            <button
+              type="button"
+              key={p}
+              onClick={() => handleSetActive(p)}
+              className={`px-3 py-2 rounded-lg border ${activeProvider === p ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
             >
-              {Object.entries(PROVIDER_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-            {PROVIDER_HINTS[provider] && (
-              <p className="text-sm text-gray-500">
-                {PROVIDER_HINTS[provider]}
-              </p>
-            )}
-          </div>
+              {PROVIDER_LABELS[p]}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-6">
+          {providers.map(p => {
+            const cfg = localConfigs[p] || { apiKey: '', model: MODELS[p][0] }
+            const models = MODELS[p]
+            const keyPrefix = KEY_PREFIXES[p]
+
+            return (
+              <div key={p} className={`border rounded-lg p-4 ${activeProvider === p ? 'border-blue-500' : 'border-gray-200 opacity-80'}`}>
+                <div className="font-semibold mb-2">{PROVIDER_LABELS[p]} {activeProvider === p && '(Active)'}</div>
+                <p className="text-sm text-gray-500 mb-3">{PROVIDER_HINTS[p]}</p>
+
+                <input
+                  type="password"
+                  value={cfg.apiKey}
+                  onChange={(e) => handleChange(p, 'apiKey', e.target.value)}
+                  placeholder={KEY_PREFIXES[p]?.example}
+                  className="w-full border rounded px-3 py-2 mb-2"
+                />
+
+                <select
+                  value={cfg.model}
+                  onChange={(e) => handleChange(p, 'model', e.target.value)}
+                  className="w-full border rounded px-3 py-2 mb-2"
+                >
+                  {models.map(m => <option key={m}>{m}</option>)}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => handleTestConnection(p)}
+                  className="text-sm text-blue-600"
+                >
+                  Test Connection
+                </button>
+              </div>
+            )
+          })}
 
           <div className="flex flex-col gap-2">
             <label htmlFor="apiKey" className="text-base font-medium">
@@ -213,7 +243,7 @@ export default function SettingsPage() {
               className="w-full border border-gray-300 rounded-lg px-4 text-base bg-white"
               style={{ height: '48px' }}
             >
-              {models.map((m) => (
+              {models.map((m: string) => (
                 <option key={m} value={m}>{m}</option>
               ))}
             </select>
@@ -242,7 +272,7 @@ export default function SettingsPage() {
             </button>
             <button
               type="button"
-              onClick={handleTestConnection}
+              onClick={() => handleTestConnection(provider)}
               disabled={isTesting || !apiKey}
               className="w-full border border-blue-600 text-blue-600 rounded-lg text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ height: '48px' }}

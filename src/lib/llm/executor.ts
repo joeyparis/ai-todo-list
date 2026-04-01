@@ -43,13 +43,13 @@ export async function executeToolCall(
   try {
     switch (toolName) {
       case 'addItems': {
-        const parsed = todoTools.addItems.parameters.parse(args)
+        const parsed = (todoTools.addItems as any).inputSchema.parse(args)
         await addItemsMutation(listId, parsed.items)
         return { success: true, itemsAdded: parsed.items.length }
       }
 
       case 'completeItems': {
-        const parsed = todoTools.completeItems.parameters.parse(args)
+        const parsed = (todoTools.completeItems as any).inputSchema.parse(args)
         const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds)
         if (existingIds.length > 0) {
           await completeItemsMutation(existingIds)
@@ -58,7 +58,7 @@ export async function executeToolCall(
       }
 
       case 'uncompleteItems': {
-        const parsed = todoTools.uncompleteItems.parameters.parse(args)
+        const parsed = (todoTools.uncompleteItems as any).inputSchema.parse(args)
         const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds)
         if (existingIds.length > 0) {
           await uncompleteItemsMutation(existingIds)
@@ -67,7 +67,7 @@ export async function executeToolCall(
       }
 
       case 'updateItem': {
-        const parsed = todoTools.updateItem.parameters.parse(args)
+        const parsed = (todoTools.updateItem as any).inputSchema.parse(args)
         const item = await db.items.get(parsed.itemId)
         if (!item) {
           return { success: false, error: 'Item not found', notFound: [parsed.itemId] }
@@ -86,7 +86,7 @@ export async function executeToolCall(
       }
 
       case 'deleteItems': {
-        const parsed = todoTools.deleteItems.parameters.parse(args)
+        const parsed = (todoTools.deleteItems as any).inputSchema.parse(args)
         const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds)
         if (existingIds.length > 0) {
           await deleteItemsMutation(existingIds)
@@ -95,10 +95,10 @@ export async function executeToolCall(
       }
 
       case 'addAndCompleteItems': {
-        const parsed = todoTools.addAndCompleteItems.parameters.parse(args)
+        const parsed = (todoTools.addAndCompleteItems as any).inputSchema.parse(args)
         await addItemsMutation(
           listId,
-          parsed.items.map(item => ({ ...item, completed: true }))
+          parsed.items.map((item: any) => ({ ...item, completed: true }))
         )
         return { success: true, itemsAdded: parsed.items.length }
       }

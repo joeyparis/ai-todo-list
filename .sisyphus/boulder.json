@@ -21,7 +21,19 @@
     "ses_2b8859ca0ffeGxKO89P0QQEQ3F",
     "ses_2b88619fbffeaxq9I2CABWIjx7",
     "ses_2b8852a94ffeEkhwWJpiknWXZi",
-    "ses_2b8739876ffe193946W4wVuQgZ"
+    "ses_2b8739876ffe193946W4wVuQgZ",
+    "ses_2b8633f96ffePKXIip6rAh6LWf",
+    "ses_2b85de6a1ffe62Vpuo5sdF2oZJ",
+    "ses_2b85e7875ffemhlGsFu8EBiraP",
+    "ses_2b85ec7c1ffefXLNxgc72acjyr",
+    "ses_2b85e1f71ffe0LeaLacO3a4tQj",
+    "ses_2b853b709ffeMdEQGfxOROMYeC",
+    "ses_2b85402f9ffeW5sxBu1DwxXePc",
+    "ses_2b6ad1fcfffeIXY0d2dkK7Tdp2",
+    "ses_2b6ab81e9ffeQjFLxi01BWQNIN",
+    "ses_2b6ab0bc7ffeTFl2u5QVYfMdP9",
+    "ses_2b6aa9033ffenMHl9F5V22645V",
+    "ses_2b6805783ffeTlUbTrigsR5AO4"
   ],
   "plan_name": "ai-todo-list",
   "agent": "atlas",
@@ -79,6 +91,23 @@
       "agent": "Sisyphus-Junior",
       "category": "deep",
       "updated_at": "2026-04-01T05:39:14.857Z"
+    },
+    "todo:15": {
+      "task_key": "todo:15",
+      "task_label": "15",
+      "task_title": "Polish - Empty States, Error Handling, Onboarding, Mobile UX",
+      "session_id": "ses_2b8633f96ffePKXIip6rAh6LWf",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-04-01T05:59:51.723Z"
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** - `oracle`",
+      "session_id": "ses_2b85402f9ffeW5sxBu1DwxXePc",
+      "agent": "oracle",
+      "updated_at": "2026-04-01T06:13:53.976Z"
     }
   }
 }

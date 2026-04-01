@@ -38,7 +38,6 @@ function toUIMessage(message: DbMessage): UIMessage {
   return {
     id: message.id,
     role: message.role,
-    content: message.content,
     parts: parseParts(message.parts, message.content),
   }
 }
@@ -47,6 +46,8 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
   const persistedMessages = useMessages(listId)
   const items = useItems(listId)
   const settings = useSettings()
+  const activeProvider = settings?.activeProvider
+  const activeConfig = activeProvider ? settings?.providerConfigs?.[activeProvider] : undefined
 
   const initialMessages = useMemo(() => {
     if (!persistedMessages) return []
@@ -56,9 +57,9 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
   const latestBodyRef = useRef({
     listState: { list, items: [] as NonNullable<typeof items> },
     settings: {
-      provider: settings?.provider,
-      apiKey: settings?.apiKey,
-      model: settings?.model,
+      provider: activeProvider,
+      apiKey: activeConfig?.apiKey,
+      model: activeConfig?.model,
     },
   })
 
@@ -69,29 +70,22 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
         items: items ?? [],
       },
       settings: {
-        provider: settings?.provider,
-        apiKey: settings?.apiKey,
-        model: settings?.model,
+        provider: activeProvider,
+        apiKey: activeConfig?.apiKey,
+        model: activeConfig?.model,
       },
     }
-  }, [items, list, settings])
+  }, [items, list, activeProvider, activeConfig])
 
-  const {
-    messages,
-    append,
-    setMessages,
-    status,
-    error,
-  } = useChat({
-    api: '/api/chat',
+  const chat = useChat({
     initialMessages,
-    experimental_prepareRequestBody: ({ id, messages: requestMessages, requestBody }) => ({
+    experimental_prepareRequestBody: ({ id, messages: requestMessages, requestBody }: any) => ({
       id,
       ...(requestBody ?? {}),
       messages: requestMessages.slice(-20),
       ...latestBodyRef.current,
     }),
-    onFinish: async message => {
+    onFinish: async (message: any) => {
       if (message.role !== 'assistant') {
         return
       }
@@ -99,15 +93,16 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       await addMessage(
         listId,
         'assistant',
-        message.content,
+        (message as any).content,
         message.parts ? JSON.stringify(message.parts) : undefined,
       )
     },
-    onToolCall: async ({ toolCall }) => {
-      const result = await executeToolCall(toolCall.toolName, toolCall.args, listId)
-      return result
+    onToolCall: async ({ toolCall }: any) => {
+      await executeToolCall(toolCall.toolName, toolCall.args, listId)
     },
-  })
+  } as any) as any
+
+  const { messages, setMessages, status, error } = chat
 
   const hasHydratedRef = useRef(false)
   useEffect(() => {
@@ -121,14 +116,14 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
 
   const handleSend = useCallback(
     async (content: string) => {
-      if (!settings?.apiKey) {
+      if (!activeConfig?.apiKey) {
         return
       }
 
       const userParts: UIMessage['parts'] = [{ type: 'text', text: content }]
       await addMessage(listId, 'user', content, JSON.stringify(userParts))
 
-      await append(
+      await chat.append(
         {
           id: crypto.randomUUID(),
           role: 'user',
@@ -140,19 +135,19 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
         },
       )
     },
-    [append, listId, settings?.apiKey],
+    [chat.append, listId, activeConfig?.apiKey],
   )
 
   const viewMessages = useMemo(
     () =>
       messages
         .filter(
-          (message): message is UIMessage & { role: 'user' | 'assistant' } =>
+          (message: any): message is UIMessage & { role: 'user' | 'assistant' } =>
             message.role === 'user' || message.role === 'assistant',
         )
-        .map(message => {
+        .map((message: any) => {
           function summarizeToolCalls(message: UIMessage): string {
-            if (message.content) return message.content
+            if ((message as any).content) return (message as any).content
             const toolParts = message.parts?.filter(p => p.type === 'tool-invocation') ?? []
             if (toolParts.length === 0) return ''
             const actions: string[] = []
@@ -172,7 +167,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
 
           const content = message.role === 'assistant'
             ? summarizeToolCalls(message)
-            : message.content
+            : (message as any).content
 
           return {
             id: message.id,
@@ -180,11 +175,11 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
             content,
           }
         })
-        .filter(msg => msg.content.trim() !== ''),
+        .filter((msg: any) => msg.content.trim() !== ''),
     [messages],
   )
 
-  const isMissingApiKey = !settings?.apiKey
+  const isMissingApiKey = !activeConfig?.apiKey
   const isLoading = status === 'submitted' || status === 'streaming'
   const inputDisabled = isMissingApiKey || isLoading
 

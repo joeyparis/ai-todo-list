@@ -27,9 +27,13 @@ export interface Message {
   createdAt: Date
 }
 
-export interface Settings {
-  id: string  // always 'settings'
-  provider: string
+export interface ProviderConfig {
   apiKey: string
   model: string
+}
+
+export interface Settings {
+  id: string  // always 'settings'
+  activeProvider: string
+  providerConfigs: Record<string, ProviderConfig>
 }

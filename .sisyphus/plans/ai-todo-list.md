@@ -1652,7 +1652,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   - Files: `app/list/[id]/page.tsx, src/lib/llm/* (integration wiring)`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 15. Polish - Empty States, Error Handling, Onboarding, Mobile UX
+- [x] 15. Polish - Empty States, Error Handling, Onboarding, Mobile UX
 
   **What to do**:
   - **Empty states** (all pages):
@@ -1789,15 +1789,15 @@ Max Concurrent: 5 (Waves 2 & 3)
 
 > 4 review agents run in PARALLEL. ALL must APPROVE. Present consolidated results to user and get explicit "okay" before completing.
 
-- [ ] F1. **Plan Compliance Audit** - `oracle`
+- [x] F1. **Plan Compliance Audit** - `oracle`
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, curl endpoint, run command). For each "Must NOT Have": search codebase for forbidden patterns - reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** - `unspecified-high`
+- [x] F2. **Code Quality Review** - `unspecified-high`
   Run `npx tsc --noEmit` + linter + review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names (data/result/item/temp). Verify TypeScript strict mode.
   Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Final-State End-to-End QA** - `unspecified-high` (+ `playwright` skill)
+- [x] F3. **Final-State End-to-End QA** - `unspecified-high` (+ `playwright` skill)
   Start from clean state (clear IndexedDB). Do NOT replay interim task QA scenarios (some depend on dev artifacts removed in Task 15). Instead, run end-to-end workflows against the finished product:
   1. **Onboarding flow**: Open app -> see empty state -> go to Settings -> configure API key -> return to index -> create a list -> see empty list with chat
   2. **Brain dump flow**: In chat, type "I need to buy milk, eggs, bread, pick up dry cleaning, and call the dentist" -> verify 5 items appear in todo panel with metadata badges
@@ -1812,7 +1812,7 @@ Max Concurrent: 5 (Waves 2 & 3)
   All at 390px viewport. Save to `.sisyphus/evidence/final-qa/`.
   Output: `E2E Flows [N/N pass] | Persistence [PASS/FAIL] | Error Handling [PASS/FAIL] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** - `deep`
+- [x] F4. **Scope Fidelity Check** - `deep`
   For each task: read "What to do", read actual diff (git log/diff). Verify 1:1 - everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance. Detect cross-task contamination: Task N touching Task M's files. Flag unaccounted changes.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 

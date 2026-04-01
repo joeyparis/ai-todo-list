@@ -86,3 +86,22 @@ export async function addMessage(
 export async function saveSettings(settings: Omit<Settings, 'id'>): Promise<void> {
   await db.settings.put({ id: 'settings', ...settings })
 }
+
+export async function saveProviderConfig(provider: string, config: { apiKey: string; model: string }): Promise<void> {
+  const existing = await db.settings.get('settings')
+  const providerConfigs = existing?.providerConfigs ?? {}
+  providerConfigs[provider] = config
+
+  await db.settings.put({
+    id: 'settings',
+    activeProvider: existing?.activeProvider ?? provider,
+    providerConfigs,
+  })
+}
+
+export async function setActiveProvider(provider: string): Promise<void> {
+  const existing = await db.settings.get('settings')
+  if (existing) {
+    await db.settings.update('settings', { activeProvider: provider })
+  }
+}
