@@ -8,11 +8,15 @@ import { saveSettings } from '@/lib/db/mutations'
 const MODELS: Record<string, string[]> = {
   openai: ['gpt-4o', 'gpt-4o-mini'],
   anthropic: ['claude-sonnet-4-20250514', 'claude-haiku-4-20250414'],
+  google: ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'],
+  openrouter: ['google/gemini-2.0-flash-exp:free', 'meta-llama/llama-4-maverick:free', 'qwen/qwen3-235b-a22b:free', 'mistralai/mistral-small-3.1-24b-instruct:free'],
 }
 
 const PROVIDER_LABELS: Record<string, string> = {
   openai: 'OpenAI',
   anthropic: 'Anthropic',
+  google: 'Google Gemini',
+  openrouter: 'OpenRouter',
 }
 
 interface TestConnectionResponse {

@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.0",
+    "@ai-sdk/google": "^3.0.55",
     "@ai-sdk/openai": "^1.0.0",
     "@ai-sdk/react": "^1.0.0",
+    "@openrouter/ai-sdk-provider": "^2.3.3",
     "@serwist/next": "^9.5.7",
     "ai": "^4.0.0",
     "dexie": "^4.0.0",

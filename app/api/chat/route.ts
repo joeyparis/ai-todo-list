@@ -2,6 +2,8 @@ import { streamText, convertToCoreMessages } from 'ai'
 import type { Message } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createAnthropic } from '@ai-sdk/anthropic'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { NextRequest } from 'next/server'
 import { buildSystemPrompt } from '@/lib/llm/prompts'
 import { todoTools } from '@/lib/llm/tools'
@@ -21,15 +23,28 @@ export async function POST(req: NextRequest) {
       listState?.items ?? [],
     )
 
-    const model =
-      settings.provider === 'openai'
-        ? createOpenAI({ apiKey: settings.apiKey })(settings.model)
-        : createAnthropic({ apiKey: settings.apiKey })(settings.model)
+    let providerModel: any
+    switch (settings.provider) {
+      case 'openai':
+        providerModel = createOpenAI({ apiKey: settings.apiKey })(settings.model)
+        break
+      case 'anthropic':
+        providerModel = createAnthropic({ apiKey: settings.apiKey })(settings.model)
+        break
+      case 'google':
+        providerModel = createGoogleGenerativeAI({ apiKey: settings.apiKey })(settings.model)
+        break
+      case 'openrouter':
+        providerModel = createOpenRouter({ apiKey: settings.apiKey }).chat(settings.model)
+        break
+      default:
+        return Response.json({ error: 'Unsupported provider' }, { status: 400 })
+    }
 
     const coreMessages = convertToCoreMessages(messages as Omit<Message, 'id'>[])
 
     const result = streamText({
-      model,
+      model: providerModel,
       system: systemPrompt,
       messages: coreMessages,
       tools: todoTools,
