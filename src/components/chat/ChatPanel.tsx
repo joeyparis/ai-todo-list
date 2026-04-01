@@ -175,7 +175,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
             content,
           }
         })
-        .filter((msg: any) => msg.content.trim() !== ''),
+    .filter((msg: any) => (msg.content ?? '').trim() !== ''),
     [messages],
   )
 
