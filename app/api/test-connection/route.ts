@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       default:
         return NextResponse.json({ error: 'Unsupported provider' }, { status: 400 })
     }
-    await generateText({ model: providerModel, prompt: 'Say "ok"', maxOutputTokens: 5 })
+await generateText({ model: providerModel, prompt: 'Say "ok"', maxOutputTokens: 16 })
     return NextResponse.json({ success: true })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
