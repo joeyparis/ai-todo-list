@@ -51,17 +51,9 @@ export default function SettingsPage() {
   const [localConfigs, setLocalConfigs] = useState<Record<string, { apiKey: string; model: string }>>({})
   const [activeProvider, setActiveProviderState] = useState('openai')
   const [isTesting, setIsTesting] = useState(false)
-  const [status, setStatus] = useState('')
-  const [showKey, setShowKey] = useState(false)
-  const [apiKey, setApiKey] = useState('')
-  const [model, setModel] = useState('')
-  const provider = activeProvider
-  const keyPrefix = KEY_PREFIXES[provider]
-  const models = MODELS[provider]
+  const [status, setStatus] = useState<Record<string, string>>({})
 
-  async function handleSave() {
-    setStatus('Saved!')
-  }
+  
 
   const GoogleSignInButton = dynamic(
     () => import('@/components/GoogleSignInButton').then(mod => ({ default: mod.GoogleSignInButton })),
@@ -89,7 +81,7 @@ export default function SettingsPage() {
 
   async function handleTestConnection(provider: string) {
     setIsTesting(true)
-    setStatus('')
+    setStatus(prev => ({ ...prev, [provider]: '' }))
     try {
       const res = await fetch('/api/test-connection', {
         method: 'POST',
@@ -98,12 +90,12 @@ export default function SettingsPage() {
       })
       const data = await res.json() as TestConnectionResponse
       if (res.ok && data.success) {
-        setStatus('Connected!')
+        setStatus(prev => ({ ...prev, [provider]: 'Connected!' }))
       } else {
-        setStatus(data.error ?? 'Connection failed')
+        setStatus(prev => ({ ...prev, [provider]: data.error ?? 'Connection failed' }))
       }
     } catch {
-      setStatus('Network error')
+      setStatus(prev => ({ ...prev, [provider]: 'Network error' }))
     } finally {
       setIsTesting(false)
     }
@@ -185,48 +177,32 @@ export default function SettingsPage() {
                   </a>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => handleTestConnection(p)}
-                  className="text-sm text-blue-600"
-                >
-                  Test Connection
-                </button>
+                
               </div>
             )
           })()}
 
-          {status && (
+          {status[activeProvider] && (
             <p
               className={`text-base font-medium ${
-                status === 'Saved!' || status === 'Connected!'
+                status[activeProvider] === 'Connected!'
                   ? 'text-green-600'
                   : 'text-red-600'
               }`}
             >
-              {status}
+              {status[activeProvider]}
             </p>
           )}
 
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={handleSave}
-              className="w-full bg-blue-600 text-white rounded-lg text-base font-medium"
-              style={{ height: '48px' }}
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTestConnection(provider)}
-              disabled={isTesting || !apiKey}
-              className="w-full border border-blue-600 text-blue-600 rounded-lg text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ height: '48px' }}
-            >
-              {isTesting ? 'Testing...' : 'Test Connection'}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleTestConnection(activeProvider)}
+            disabled={isTesting || !localConfigs[activeProvider]?.apiKey}
+            className="w-full border border-blue-600 text-blue-600 rounded-lg text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ height: '48px' }}
+          >
+            {isTesting ? 'Testing...' : 'Test Connection'}
+          </button>
         </div>
       </div>
     </main>
