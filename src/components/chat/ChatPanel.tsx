@@ -63,6 +63,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
   }, [persistedMessages])
 
   const executedToolCallsRef = useRef(new Set<string>())
+  const chatRef = useRef<ReturnType<typeof useChat>>(null)
 
   const latestBodyRef = useRef({
     listState: { list, items: [] as NonNullable<typeof items> },
@@ -131,13 +132,18 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       if (callId) executedToolCallsRef.current.add(callId)
       try {
         const result = await executeToolCall(toolCall.toolName, toolCall.input ?? toolCall.args, listId)
+        chatRef.current?.addToolOutput({ tool: toolCall.toolName, toolCallId: callId, output: result })
         return result
       } catch (err) {
         console.error('[ChatPanel] onToolCall error:', err)
-        return { success: false, error: String(err) }
+        const errorResult = { success: false, error: String(err) }
+        chatRef.current?.addToolOutput({ tool: toolCall.toolName, toolCallId: callId, state: 'output-error', errorText: String(err) })
+        return errorResult
       }
     }) as any,
   })
+
+  chatRef.current = chat
 
   const { messages, setMessages, status, error } = chat
 
