@@ -49,7 +49,9 @@ export async function POST(req: NextRequest) {
         return Response.json({ error: 'Unsupported provider' }, { status: 400 })
     }
 
-    const coreMessages = await convertToModelMessages(messages as Omit<UIMessage, 'id'>[])
+    const coreMessages = await convertToModelMessages(messages as Omit<UIMessage, 'id'>[], {
+      ignoreIncompleteToolCalls: true,
+    })
 
     const result = streamText({
       model: providerModel,
