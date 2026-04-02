@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSettings } from '@/lib/db/hooks'
+import { ImportExportSection } from '@/components/settings/ImportExportSection'
 import { saveProviderConfig, setActiveProvider } from '@/lib/db/mutations'
 import { useTheme } from '@/components/ThemeScript'
 
@@ -344,6 +345,9 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+
+        <div className="border-t border-gray-200 dark:border-gray-700 my-6" />
+        <ImportExportSection />
       </div>
     </main>
   )
