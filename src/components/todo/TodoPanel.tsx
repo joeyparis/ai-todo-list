@@ -183,7 +183,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
         </div>
       ) : (
         <div 
-          className="flex-1 overflow-y-auto pb-20"
+          className="flex-1 overflow-y-auto"
           onTouchMove={touchDragId ? handleTouchMoveDrag : undefined}
           onTouchEnd={touchDragId ? handleTouchEndDrag : undefined}
         >

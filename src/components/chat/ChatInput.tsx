@@ -36,7 +36,7 @@ export function ChatInput({ onSend, disabled, placeholder = 'Brain dump your tas
   }
 
   return (
-    <div className="flex items-end gap-2 p-3 pb-safe border-t border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 flex-shrink-0 sticky bottom-0">
+    <div className="flex items-end gap-2 p-3 border-t border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 flex-shrink-0 sticky bottom-0">
       <textarea
         ref={textareaRef}
         data-testid="chat-input"

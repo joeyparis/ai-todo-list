@@ -20,7 +20,7 @@ export function AddItemInput({ listId }: AddItemInputProps) {
 
   return (
     <div 
-      className="flex items-center gap-2 px-4 py-3 border-t border-surface-200 dark:border-surface-700 pb-safe"
+      className="flex items-center gap-2 px-4 py-3 border-t border-surface-200 dark:border-surface-700"
       data-testid="add-item-input"
     >
       <input
