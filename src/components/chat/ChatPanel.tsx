@@ -96,10 +96,20 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
           return
         }
 
-        const textContent = (message.parts as any[])
+        let textContent = (message.parts as any[])
           ?.filter((p: any) => p.type === 'text')
           .map((p: any) => p.text)
           .join('') ?? ''
+
+        if (!textContent) {
+          const toolNames = (message.parts as any[])
+            ?.filter((p: any) => typeof p.type === 'string' && p.type.startsWith('tool-'))
+            .map((p: any) => p.toolName)
+            .filter(Boolean) ?? []
+          if (toolNames.length > 0) {
+            textContent = 'Done!'
+          }
+        }
 
         await addMessage(
           listId,
@@ -113,7 +123,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
     },
     onToolCall: (async ({ toolCall }: any) => {
       try {
-        const result = await executeToolCall(toolCall.toolName, toolCall.args, listId)
+        const result = await executeToolCall(toolCall.toolName, toolCall.input ?? toolCall.args, listId)
         return result
       } catch (err) {
         console.error('[ChatPanel] onToolCall error:', err)
