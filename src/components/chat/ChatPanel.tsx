@@ -175,11 +175,11 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
             const textContent = textParts.map((p: any) => p.text).join('')
             if (textContent) return textContent
 
-            const toolParts = message.parts?.filter(p => p.type === 'tool-invocation') ?? []
+            const toolParts = message.parts?.filter((p: any) => typeof p.type === 'string' && p.type.startsWith('tool-')) ?? []
             if (toolParts.length === 0) return ''
             const actions: string[] = []
             for (const part of toolParts) {
-              const name = (part as any).toolInvocation?.toolName
+              const name = (part as any).toolName
               switch (name) {
                 case 'addItems': actions.push('Added items'); break
                 case 'completeItems': actions.push('Checked off items'); break
