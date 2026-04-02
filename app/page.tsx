@@ -190,28 +190,20 @@ export default function HomePage() {
 
       <div className="space-y-3">
         {filteredLists.map(list => (
-          <div key={list.id} className="card relative group hover:shadow-soft-md hover:-translate-y-0.5 transition-all duration-200" data-testid="list-card">
+          <div key={list.id} className={`card relative group hover:shadow-soft-md hover:-translate-y-0.5 transition-all duration-200 ${openMenuId === list.id ? 'z-30' : ''}`} data-testid="list-card">
             <button
               type="button"
               onClick={() => router.push(`/list/${list.id}`)}
-              className="w-full text-left p-4 pr-12 touch-target"
+              className="w-full text-left p-4 pr-12 touch-target flex flex-col items-start"
               aria-label={`Open list ${list.name}`}
             >
-              <div className="flex justify-between items-start mb-1">
-                <p className="font-semibold text-lg text-surface-900 dark:text-surface-50 truncate pr-4">{list.name}</p>
+              <div className="flex items-baseline justify-between gap-3 w-full">
+                <p className="font-semibold text-surface-900 dark:text-surface-50 truncate min-w-0">{list.name}</p>
+                <span className="text-xs text-surface-400 dark:text-surface-500 whitespace-nowrap flex-shrink-0">{relativeTime(list.updatedAt)}</span>
               </div>
               {list.goal && (
-                <p className="text-sm text-surface-600 dark:text-surface-300 mt-1 line-clamp-2">{list.goal}</p>
+                <p className="text-sm text-surface-500 dark:text-surface-400 mt-1 line-clamp-2">{list.goal}</p>
               )}
-              <div className="flex items-center gap-3 mt-3">
-                <p className="text-xs text-surface-400 dark:text-surface-500 flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                  {relativeTime(list.updatedAt)}
-                </p>
-              </div>
             </button>
 
             <button
