@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
-import type { ExportEnvelope } from '@/lib/db/export-schema'
+import { validateImportData, type ExportEnvelope } from '@/lib/db/export-schema'
+import type { Item, List } from '@/lib/db/types'
 
 export interface ExportOptions {
   listIds: string[]
@@ -13,11 +14,11 @@ export async function exportData(options: ExportOptions): Promise<ExportEnvelope
     throw new Error('Nothing selected for export')
   }
 
-  const lists = listIds.length > 0
+  const lists: List[] = listIds.length > 0
     ? await db.lists.where('id').anyOf(listIds).toArray()
     : []
 
-  const items = listIds.length > 0
+  const items: Item[] = listIds.length > 0
     ? await db.items.where('listId').anyOf(listIds).toArray()
     : []
 
@@ -76,4 +77,126 @@ export function downloadExport(data: ExportEnvelope): void {
   a.href = url
   a.click()
   URL.revokeObjectURL(url)
+}
+
+export function parseImportFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('Failed to read file as text'))
+    }
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error('Failed to read import file'))
+    }
+
+    reader.readAsText(file)
+  })
+}
+
+export async function importData(
+  jsonString: string,
+  mode: 'merge' | 'replace'
+): Promise<{ listsImported: number; itemsImported: number; settingsImported: boolean }> {
+  let parsed: unknown
+
+  try {
+    parsed = JSON.parse(jsonString)
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`Invalid JSON file: ${error.message}`)
+    }
+    throw error
+  }
+
+  const validated = validateImportData(parsed)
+
+  const importedLists = validated.data.lists.map((list) => ({
+    ...list,
+    createdAt: new Date(list.createdAt),
+    updatedAt: new Date(list.updatedAt),
+  }))
+
+  const importedItems = validated.data.items.map((item) => ({
+    ...item,
+    completedAt: item.completedAt ? new Date(item.completedAt) : undefined,
+    createdAt: new Date(item.createdAt),
+    updatedAt: new Date(item.updatedAt),
+  }))
+
+  if (mode === 'merge') {
+    const listIdMap = new Map<string, string>()
+    const now = new Date()
+
+    const newLists = importedLists.map((list) => {
+      const newListId = crypto.randomUUID()
+      listIdMap.set(list.id, newListId)
+
+      return {
+        ...list,
+        id: newListId,
+        updatedAt: now,
+      }
+    })
+
+    const newItems = importedItems.map((item) => ({
+      ...item,
+      id: crypto.randomUUID(),
+      listId: listIdMap.get(item.listId) ?? item.listId,
+    }))
+
+    await db.lists.db.transaction('rw', [db.lists, db.items, db.settings], async () => {
+      if (newLists.length > 0) {
+        await db.lists.bulkAdd(newLists)
+      }
+
+      if (newItems.length > 0) {
+        await db.items.bulkAdd(newItems)
+      }
+
+      if (validated.data.settings) {
+        await db.settings.put({ id: 'settings', ...validated.data.settings })
+      }
+    })
+
+    if (validated.data.settings?.theme) {
+      localStorage.setItem('theme', validated.data.settings.theme)
+    }
+  } else {
+    await db.lists.db.transaction('rw', [db.lists, db.items, db.settings], async () => {
+      await db.lists.clear()
+      await db.items.clear()
+      await db.settings.clear()
+
+      if (importedLists.length > 0) {
+        await db.lists.bulkAdd(importedLists)
+      }
+
+      if (importedItems.length > 0) {
+        await db.items.bulkAdd(importedItems)
+      }
+
+      if (validated.data.settings) {
+        await db.settings.put({ id: 'settings', ...validated.data.settings })
+      }
+    })
+
+    if (validated.data.settings?.theme) {
+      localStorage.setItem('theme', validated.data.settings.theme)
+    } else {
+      localStorage.removeItem('theme')
+    }
+  }
+
+  return {
+    listsImported: validated.data.lists.length,
+    itemsImported: validated.data.items.length,
+    settingsImported: Boolean(validated.data.settings),
+  }
 }
