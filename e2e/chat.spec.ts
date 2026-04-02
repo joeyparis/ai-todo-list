@@ -103,7 +103,7 @@ test.describe('Chat Interaction', () => {
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Start by telling me what you need to get done')).toBeVisible()
+    await expect(page.getByText('How can I help?')).toBeVisible()
   })
 
   test('sent message appears as user bubble and enter sends', async ({ page }) => {
@@ -126,7 +126,7 @@ test.describe('Chat Interaction', () => {
     await page.getByPlaceholder('Brain dump your tasks...').fill('Hello test message')
     await page.keyboard.press('Enter')
 
-    await expect(page.locator('div.bg-blue-500.text-white').filter({ hasText: 'Hello test message' })).toBeVisible()
+    await expect(page.locator('[data-testid="chat-bubble-user"]').filter({ hasText: 'Hello test message' })).toBeVisible()
     await expect.poll(() => requestCount).toBe(1)
   })
 
@@ -143,8 +143,8 @@ test.describe('Chat Interaction', () => {
     await page.getByPlaceholder('Brain dump your tasks...').fill('Hello')
     await page.keyboard.press('Enter')
 
-    await expect(page.locator('div.bg-red-50')).toHaveCount(0)
-    await expect(page.locator('div.bg-blue-500.text-white').filter({ hasText: 'Hello' })).toBeVisible()
+    await expect(page.locator('[data-testid="chat-error"]')).toHaveCount(0)
+    await expect(page.locator('[data-testid="chat-bubble-user"]').filter({ hasText: 'Hello' })).toBeVisible()
   })
 
   test('error response shows error banner', async ({ page }) => {
@@ -162,7 +162,7 @@ test.describe('Chat Interaction', () => {
     await page.getByPlaceholder('Brain dump your tasks...').fill('This will fail')
     await page.keyboard.press('Enter')
 
-    await expect(page.locator('div.bg-red-50').filter({ hasText: /Internal Server Error|Something went wrong/ })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('[data-testid="chat-error"]').filter({ hasText: /Internal Server Error|Something went wrong/ })).toBeVisible({ timeout: 10000 })
   })
 
   test('input is disabled while chat request is loading', async ({ page }) => {

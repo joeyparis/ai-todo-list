@@ -36,9 +36,10 @@ export function ChatInput({ onSend, disabled, placeholder = 'Brain dump your tas
   }
 
   return (
-    <div className="flex items-end gap-2 p-3 border-t border-gray-200 bg-white flex-shrink-0">
+    <div className="flex items-end gap-2 p-3 border-t border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 flex-shrink-0 sticky bottom-0">
       <textarea
         ref={textareaRef}
+        data-testid="chat-input"
         value={value}
         onChange={e => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -46,17 +47,18 @@ export function ChatInput({ onSend, disabled, placeholder = 'Brain dump your tas
         disabled={disabled}
         placeholder={placeholder}
         rows={1}
-        className="flex-1 resize-none rounded-xl border border-gray-300 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 overflow-y-auto"
-        style={{ minHeight: '44px', maxHeight: '128px' }}
+        className="input-base flex-1 resize-none px-4 py-3 text-base overflow-y-auto disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ minHeight: '48px', maxHeight: '128px' }}
       />
       <button
         type="button"
+        data-testid="chat-send-button"
         onClick={handleSend}
         disabled={disabled || !value.trim()}
-        className="flex-shrink-0 w-11 h-11 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg disabled:opacity-40 disabled:cursor-not-allowed"
+        className="flex-shrink-0 w-12 h-12 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-target"
         aria-label="Send"
       >
-        ↑
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
       </button>
     </div>
   )

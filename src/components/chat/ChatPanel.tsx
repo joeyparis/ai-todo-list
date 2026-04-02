@@ -52,7 +52,6 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
   const persistedMessagesRef = useRef<typeof persistedMessages>(undefined)
   const initialMessages = useMemo(() => {
     if (!persistedMessages) return []
-    // Only recompute when message IDs actually changed (not just new array reference)
     const prevIds = persistedMessagesRef.current?.map(m => m.id).join(',') ?? ''
     const currIds = persistedMessages.map(m => m.id).join(',')
     if (prevIds === currIds && persistedMessagesRef.current !== undefined) {
@@ -234,24 +233,36 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
   const inputDisabled = isMissingApiKey || isLoading
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-surface-50 dark:bg-surface-950 relative">
       {isMissingApiKey ? (
-        <div className="mx-4 mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-          Missing AI settings. Add your provider, model, and API key in{' '}
-          <Link href="/settings" className="font-medium underline">
-            Settings
-          </Link>
-          .
+        <div data-testid="api-key-warning" className="absolute top-4 left-4 right-4 z-10 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950 p-3 text-sm text-amber-900 dark:text-amber-200 shadow-sm flex items-start gap-2 animate-slide-up">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0" role="img" aria-label="Warning"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          <div>
+            Missing AI settings. Add your provider, model, and API key in{' '}
+            <Link href="/settings" className="font-medium underline hover:text-amber-700 dark:hover:text-amber-100">
+              Settings
+            </Link>
+            .
+          </div>
         </div>
       ) : null}
 
       {error ? (
-        <div className="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error.message || 'Something went wrong while sending your message.'}
+        <div data-testid="chat-error" className="absolute top-4 left-4 right-4 z-10 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950 p-3 text-sm text-rose-700 dark:text-rose-200 shadow-sm flex items-start gap-2 animate-slide-up">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0" role="img" aria-label="Error"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div>{error.message || 'Something went wrong while sending your message.'}</div>
         </div>
       ) : null}
 
-      <ChatMessages messages={viewMessages} isLoading={isLoading} />
+      <ChatMessages messages={viewMessages} isLoading={isLoading} isStreaming={status === 'streaming'} />
+      
+      {status === 'submitted' && (
+        <div className="px-4 py-2 flex items-center gap-2 text-sm text-surface-500 dark:text-surface-400 animate-pulse bg-surface-50 dark:bg-surface-950">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" role="img" aria-label="Thinking"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>
+          Thinking...
+        </div>
+      )}
+
       <ChatInput onSend={handleSend} disabled={inputDisabled} />
     </div>
   )

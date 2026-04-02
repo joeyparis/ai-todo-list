@@ -13,37 +13,78 @@ interface SplitScreenProps {
 export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScreenProps) {
   const [listVisible, setListVisible] = useState(true)
   const [chatVisible, setChatVisible] = useState(true)
-  const [splitRatio, setSplitRatio] = useState(0.45)
-  const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('vertical')
+  const [splitRatio, setSplitRatio] = useState(0.5)
+  const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('horizontal')
+  const [activeTab, setActiveTab] = useState<'tasks' | 'chat'>('tasks')
   const containerRef = useRef<HTMLDivElement | null>(null)
   const draggingRef = useRef(false)
   const [isDragging, setIsDragging] = useState(false)
   const userOverrodeRef = useRef(false)
 
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1023px)')
+  const isMobile = useMediaQuery('(max-width: 767px)')
 
   useEffect(() => {
     if (userOverrodeRef.current) return
-    setOrientation(isDesktop ? 'horizontal' : 'vertical')
-  }, [isDesktop])
+    if (isDesktop) {
+      setOrientation('horizontal')
+      setSplitRatio(0.45)
+      setListVisible(true)
+      setChatVisible(true)
+    } else if (isTablet) {
+      setOrientation('horizontal')
+      setSplitRatio(0.5)
+      setListVisible(true)
+      setChatVisible(true)
+    }
+  }, [isDesktop, isTablet])
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-white">
-      <header className="flex items-center justify-between px-4 h-12 border-b border-gray-200 flex-shrink-0">
-        <button type="button" onClick={onBack} className="text-blue-500 text-sm font-medium min-w-[44px] min-h-[44px] flex items-center">
-          ← Back
+    <div className="flex flex-col h-[100dvh] bg-surface-50 dark:bg-surface-950 text-surface-900 dark:text-surface-50">
+      <header className="flex items-center justify-between px-4 h-14 border-b border-surface-200 dark:border-surface-800 flex-shrink-0 bg-white dark:bg-surface-900">
+        <button type="button" onClick={onBack} className="text-primary-500 dark:text-primary-400 text-sm font-medium min-w-[44px] min-h-[44px] flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          Back
         </button>
         <h1 className="text-base font-semibold truncate mx-2">{listName}</h1>
-        <Link href="/settings" className="text-gray-500 min-w-[44px] min-h-[44px] flex items-center justify-end">
-          ⚙️
+        <Link href="/settings" aria-label="Settings" className="text-surface-500 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 min-w-[44px] min-h-[44px] flex items-center justify-end">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         </Link>
       </header>
+
+      {isMobile && (
+        <div className="flex border-b border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 flex-shrink-0">
+          <button
+            type="button"
+            data-testid="tab-tasks"
+            onClick={() => setActiveTab('tasks')}
+            className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${activeTab === 'tasks' ? 'text-primary-600 dark:text-primary-400' : 'text-surface-500 dark:text-surface-400'}`}
+          >
+            Tasks
+            {activeTab === 'tasks' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
+            )}
+          </button>
+          <button
+            type="button"
+            data-testid="tab-chat"
+            onClick={() => setActiveTab('chat')}
+            className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${activeTab === 'chat' ? 'text-primary-600 dark:text-primary-400' : 'text-surface-500 dark:text-surface-400'}`}
+          >
+            Chat
+            {activeTab === 'chat' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
+            )}
+          </button>
+        </div>
+      )}
 
       <div
         ref={containerRef}
         className={`flex ${orientation === 'vertical' ? 'flex-col' : 'flex-row'} flex-1 overflow-hidden ${isDragging ? 'select-none' : ''}`}
         onPointerMove={e => {
-          if (!draggingRef.current || !containerRef.current) return
+          if (!draggingRef.current || !containerRef.current || isMobile) return
           e.preventDefault()
           const rect = containerRef.current.getBoundingClientRect()
           const ratio = orientation === 'vertical'
@@ -61,70 +102,83 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack }: SplitScr
           setIsDragging(false)
         }}
       >
-        <div
-          className="flex flex-col overflow-hidden"
-          style={{ flex: listVisible ? splitRatio : 0 }}
-        >
-          <div className="flex-1 overflow-y-auto">
-            {listVisible && listPanel}
-          </div>
-        </div>
-
-        <div
-          className={`flex ${orientation === 'vertical' ? 'flex-row h-10 border-y' : 'flex-col w-10 border-x'} items-center bg-gray-50 border-gray-200`}
-        >
-          <button
-            type="button"
-            title={listVisible ? 'Hide list' : 'Show list'}
-            onClick={() => setListVisible(v => !v)}
-            className={`p-1.5 flex items-center justify-center hover:bg-gray-100 ${!listVisible ? 'opacity-40' : ''}`}
-          >
-            ☰
-          </button>
-
+        {(!isMobile || activeTab === 'tasks') && (
           <div
-            className={`flex-1 ${orientation === 'vertical' ? 'h-3 mx-1' : 'w-3 my-1'} bg-gray-300 rounded flex items-center justify-center ${orientation === 'vertical' ? 'cursor-row-resize' : 'cursor-col-resize'}`}
-            style={{ touchAction: 'none' }}
-            onPointerDown={() => {
-              draggingRef.current = true
-              setIsDragging(true)
-            }}
+            className={`flex flex-col overflow-hidden ${isMobile ? 'w-full animate-fade-in' : ''}`}
+            style={!isMobile ? { flex: listVisible ? splitRatio : 0 } : undefined}
           >
-            <span className="text-gray-600 text-xs select-none">
-              {orientation === 'vertical' ? '⋯' : '⋮'}
-            </span>
+            <div className="flex-1 overflow-y-auto">
+              {(!isMobile ? listVisible : true) && listPanel}
+            </div>
           </div>
+        )}
 
-          <button
-            type="button"
-            title={chatVisible ? 'Hide chat' : 'Show chat'}
-            onClick={() => setChatVisible(v => !v)}
-            className={`p-1.5 flex items-center justify-center hover:bg-gray-100 ${!chatVisible ? 'opacity-40' : ''}`}
+        {!isMobile && (
+          <div
+            data-testid="split-divider"
+            className={`flex ${orientation === 'vertical' ? 'flex-row h-8 border-y' : 'flex-col w-8 border-x'} items-center bg-surface-100 dark:bg-surface-900 border-surface-200 dark:border-surface-800`}
           >
-            💬
-          </button>
+            <button
+              type="button"
+              title={listVisible ? 'Hide list' : 'Show list'}
+              onClick={() => setListVisible(v => !v)}
+              className={`p-1.5 flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-200 dark:hover:bg-surface-800 rounded ${!listVisible ? 'opacity-40' : ''}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </button>
 
-          <button
-            type="button"
-            title="Toggle orientation"
-            onClick={() => {
-              userOverrodeRef.current = true
-              setOrientation(o => (o === 'vertical' ? 'horizontal' : 'vertical'))
-            }}
-            className="p-1.5 flex items-center justify-center hover:bg-gray-100"
-          >
-            {orientation === 'vertical' ? '⬍' : '⬌'}
-          </button>
-        </div>
+            <div
+              className={`flex-1 ${orientation === 'vertical' ? 'h-1 mx-1' : 'w-1 my-1'} bg-surface-300 dark:bg-surface-700 rounded-full flex items-center justify-center ${orientation === 'vertical' ? 'cursor-row-resize' : 'cursor-col-resize'} hover:bg-primary-400 dark:hover:bg-primary-500 transition-colors`}
+              style={{ touchAction: 'none' }}
+              onPointerDown={() => {
+                draggingRef.current = true
+                setIsDragging(true)
+              }}
+            >
+              <div className={`flex ${orientation === 'vertical' ? 'flex-row gap-1' : 'flex-col gap-1'}`}>
+                <div className="w-1 h-1 rounded-full bg-surface-400 dark:bg-surface-600" />
+                <div className="w-1 h-1 rounded-full bg-surface-400 dark:bg-surface-600" />
+                <div className="w-1 h-1 rounded-full bg-surface-400 dark:bg-surface-600" />
+              </div>
+            </div>
 
-        <div
-          className="flex flex-col overflow-hidden"
-          style={{ flex: chatVisible ? 1 - splitRatio : 0 }}
-        >
-          <div className="flex-1 overflow-y-auto flex flex-col">
-            {chatVisible && chatPanel}
+            <button
+              type="button"
+              title={chatVisible ? 'Hide chat' : 'Show chat'}
+              onClick={() => setChatVisible(v => !v)}
+              className={`p-1.5 flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-200 dark:hover:bg-surface-800 rounded ${!chatVisible ? 'opacity-40' : ''}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </button>
+
+            <button
+              type="button"
+              title="Toggle orientation"
+              onClick={() => {
+                userOverrodeRef.current = true
+                setOrientation(o => (o === 'vertical' ? 'horizontal' : 'vertical'))
+              }}
+              className="p-1.5 flex items-center justify-center text-surface-500 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-200 dark:hover:bg-surface-800 rounded"
+            >
+              {orientation === 'vertical' ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              )}
+            </button>
           </div>
-        </div>
+        )}
+
+        {(!isMobile || activeTab === 'chat') && (
+          <div
+            className={`flex flex-col overflow-hidden ${isMobile ? 'w-full animate-fade-in' : ''}`}
+            style={!isMobile ? { flex: chatVisible ? 1 - splitRatio : 0 } : undefined}
+          >
+            <div className="flex-1 overflow-y-auto flex flex-col">
+              {(!isMobile ? chatVisible : true) && chatPanel}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

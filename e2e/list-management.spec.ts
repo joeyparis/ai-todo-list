@@ -60,8 +60,8 @@ test.describe('List Management', () => {
 
     page.on('dialog', dialog => dialog.accept())
 
-    const listItem = page.locator('.border.rounded-xl').filter({ hasText: 'List To Delete' })
-    await listItem.getByRole('button', { name: 'Options' }).click()
+    const listItem = page.locator('[data-testid="list-card"]').filter({ hasText: 'List To Delete' })
+    await listItem.getByRole('button', { name: 'List options' }).click()
     await page.getByRole('button', { name: 'Delete', exact: true }).click()
 
     await expect(page.getByText('List To Delete')).not.toBeVisible()

@@ -105,3 +105,10 @@ export async function setActiveProvider(provider: string): Promise<void> {
     await db.settings.update('settings', { activeProvider: provider })
   }
 }
+
+export async function reorderItems(listId: string, orderedIds: string[]): Promise<void> {
+  const now = new Date()
+  await db.items.bulkUpdate(
+    orderedIds.map((id, index) => ({ key: id, changes: { order: index, updatedAt: now } }))
+  )
+}

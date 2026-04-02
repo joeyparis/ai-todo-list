@@ -20,7 +20,7 @@ test.describe('Onboarding Flow', () => {
   })
 
   test('shows empty state on fresh visit', async ({ page }) => {
-    await expect(page.getByText('No lists yet.')).toBeVisible()
+    await expect(page.getByText('No lists yet')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Create your first list' })).toBeVisible()
   })
 

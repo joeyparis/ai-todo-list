@@ -33,7 +33,7 @@ test.describe('Settings Page', () => {
 
   test('switching provider changes active tab', async ({ page }) => {
     await page.getByRole('button', { name: 'Anthropic' }).click()
-    await expect(page.getByRole('button', { name: 'Anthropic' })).toHaveClass(/border-blue-500/)
+    await expect(page.getByRole('button', { name: 'Anthropic' })).toHaveClass(/text-primary-700/)
   })
 
   test('API key persists after reload', async ({ page }) => {
