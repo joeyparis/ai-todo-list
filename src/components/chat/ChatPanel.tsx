@@ -62,6 +62,8 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
     return persistedMessages.map(toUIMessage)
   }, [persistedMessages])
 
+  const executedToolCallsRef = useRef(new Set<string>())
+
   const latestBodyRef = useRef({
     listState: { list, items: [] as NonNullable<typeof items> },
     settings: {
@@ -122,6 +124,11 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       }
     },
     onToolCall: (async ({ toolCall }: any) => {
+      const callId = toolCall.toolCallId
+      if (callId && executedToolCallsRef.current.has(callId)) {
+        return
+      }
+      if (callId) executedToolCallsRef.current.add(callId)
       try {
         const result = await executeToolCall(toolCall.toolName, toolCall.input ?? toolCall.args, listId)
         return result
