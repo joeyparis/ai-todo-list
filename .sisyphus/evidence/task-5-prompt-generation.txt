@@ -1,4 +1,0 @@
-✓ Prompt with items: PASS
-✓ Empty list prompt: PASS
-
-All prompt tests passed!

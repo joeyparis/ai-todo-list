@@ -42,3 +42,11 @@ next-env.d.ts
 
 # service worker
 public/sw.js
+
+# agent working files
+.sisyphus/
+.playwright-mcp/
+
+# debug screenshots
+*.png
+!public/**/*.png
