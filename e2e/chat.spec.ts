@@ -57,6 +57,56 @@ async function createListAndNavigate(page: Page, name: string) {
   await page.waitForLoadState('networkidle')
 }
 
+async function seedMessages(page: Page, listId: string) {
+  await page.evaluate((id: string) => {
+    return new Promise<void>((resolve, reject) => {
+      const openReq = indexedDB.open('ai-todo-list')
+
+      openReq.onsuccess = (event: Event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+        if (!db.objectStoreNames.contains('messages')) {
+          reject(new Error('messages object store missing'))
+          return
+        }
+
+        const tx = db.transaction('messages', 'readwrite')
+        const store = tx.objectStore('messages')
+        const now = new Date()
+
+        store.put({
+          id: 'seed-user-message',
+          listId: id,
+          role: 'user',
+          content: 'Seeded user message',
+          parts: JSON.stringify([{ type: 'text', text: 'Seeded user message' }]),
+          createdAt: new Date(now.getTime() - 1000),
+        })
+
+        store.put({
+          id: 'seed-assistant-message',
+          listId: id,
+          role: 'assistant',
+          content: '',
+          parts: JSON.stringify([
+            {
+              type: 'tool-addItems',
+              toolCallId: 'call-seeded',
+              toolName: 'addItems',
+              input: { items: [{ text: 'Buy milk' }] },
+            },
+          ]),
+          createdAt: now,
+        })
+
+        tx.oncomplete = () => resolve()
+        tx.onerror = () => reject(tx.error)
+      }
+
+      openReq.onerror = () => reject(openReq.error)
+    })
+  }, listId)
+}
+
 async function mockChat(
   page: Page,
   {
@@ -145,6 +195,19 @@ test.describe('Chat Interaction', () => {
 
     await expect(page.locator('[data-testid="chat-error"]')).toHaveCount(0)
     await expect(page.locator('[data-testid="chat-bubble-user"]').filter({ hasText: 'Hello' })).toBeVisible()
+  })
+
+  test('persisted assistant tool-only messages remain visible after reload', async ({ page }) => {
+    await createListAndNavigate(page, 'Persisted Assistant Reload Test')
+    const match = page.url().match(/\/list\/([a-z0-9-]+)/)
+    expect(match?.[1]).toBeTruthy()
+
+    await seedMessages(page, match![1])
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    await expect(page.locator('[data-testid="chat-bubble-user"]').filter({ hasText: 'Seeded user message' })).toBeVisible()
+    await expect(page.locator('[data-testid="chat-bubble-assistant"]').filter({ hasText: 'Done!' })).toBeVisible()
   })
 
   test('error response shows error banner', async ({ page }) => {

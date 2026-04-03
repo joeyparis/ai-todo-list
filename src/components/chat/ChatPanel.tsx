@@ -8,6 +8,11 @@ import { useItems, useMessages, useSettings } from '@/lib/db/hooks'
 import { addMessage } from '@/lib/db/mutations'
 import type { Message as DbMessage } from '@/lib/db/types'
 import { executeToolCall } from '@/lib/llm/executor'
+import {
+  extractAssistantMessageParts,
+  summarizeAssistantParts,
+  summarizeMessageForTranscript,
+} from './persistence'
 import { ChatInput } from './ChatInput'
 import { ChatMessages } from './ChatMessages'
 
@@ -92,32 +97,20 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
     onError: (error) => {
       console.error('[ChatPanel] useChat error:', error)
     },
-    onFinish: async (message: any) => {
+    onFinish: async (payload: unknown) => {
       try {
-        if (message.role !== 'assistant') {
+        const parts = extractAssistantMessageParts(payload)
+        if (!parts) {
           return
         }
 
-        let textContent = (message.parts as any[])
-          ?.filter((p: any) => p.type === 'text')
-          .map((p: any) => p.text)
-          .join('') ?? ''
-
-        if (!textContent) {
-          const toolNames = (message.parts as any[])
-            ?.filter((p: any) => typeof p.type === 'string' && p.type.startsWith('tool-'))
-            .map((p: any) => p.toolName)
-            .filter(Boolean) ?? []
-          if (toolNames.length > 0) {
-            textContent = 'Done!'
-          }
-        }
+        const textContent = summarizeAssistantParts(parts)
 
         await addMessage(
           listId,
           'assistant',
           textContent,
-          message.parts ? JSON.stringify(message.parts) : undefined,
+          JSON.stringify(parts),
         )
       } catch (err) {
         console.error('[ChatPanel] onFinish error:', err)
@@ -192,36 +185,10 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
             message.role === 'user' || message.role === 'assistant',
         )
         .map((message: any) => {
-          function summarizeToolCalls(message: UIMessage): string {
-            const textParts = message.parts?.filter(p => p.type === 'text') ?? []
-            const textContent = textParts.map((p: any) => p.text).join('')
-            if (textContent) return textContent
-
-            const toolParts = message.parts?.filter((p: any) => typeof p.type === 'string' && p.type.startsWith('tool-')) ?? []
-            if (toolParts.length === 0) return ''
-            const actions: string[] = []
-            for (const part of toolParts) {
-              const name = (part as any).toolName
-              switch (name) {
-                case 'addItems': actions.push('Added items'); break
-                case 'completeItems': actions.push('Checked off items'); break
-                case 'uncompleteItems': actions.push('Unchecked items'); break
-                case 'updateItem': actions.push('Updated item'); break
-                case 'deleteItems': actions.push('Removed items'); break
-                case 'addAndCompleteItems': actions.push('Added completed items'); break
-              }
-            }
-            return actions.length > 0 ? actions.join(', ') + '.' : 'Done!'
-          }
-
-          const content = message.role === 'assistant'
-            ? summarizeToolCalls(message)
-            : message.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') || ''
-
           return {
             id: message.id,
             messageRole: message.role,
-            content,
+            content: summarizeMessageForTranscript(message),
           }
         })
     .filter((msg: any) => (msg.content ?? '').trim() !== ''),

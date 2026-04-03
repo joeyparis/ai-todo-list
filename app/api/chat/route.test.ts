@@ -89,6 +89,40 @@ describe('POST /api/chat', () => {
     expect(call.model).toBe('mock-openai-model')
   })
 
+  it('removes completion tools for add-only user turns', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'Also add pick up dry cleaning' }],
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.tools.addItems).toBeTruthy()
+    expect(call.tools.completeItems).toBeUndefined()
+    expect(call.tools.addAndCompleteItems).toBeUndefined()
+  })
+
+  it('keeps completion tools available for already-done turns', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'I already finished the groceries' }],
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.tools.completeItems).toBeTruthy()
+    expect(call.tools.addAndCompleteItems).toBeTruthy()
+  })
+
+  it('keeps completion tools available for additive already-done phrasing', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'Oh I also picked up the dry cleaning' }],
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.tools.completeItems).toBeTruthy()
+    expect(call.tools.addAndCompleteItems).toBeTruthy()
+  })
+
   it('selects the correct provider for anthropic', async () => {
     await POST(makeRequest({
       ...validBody,

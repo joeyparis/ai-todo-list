@@ -47,6 +47,25 @@ describe('executeToolCall', () => {
       expect(result.itemsCompleted).toBe(1)
       expect(result.notFound).toContain('fake-id-123')
     })
+
+    it('ignores item IDs from other lists', async () => {
+      const localItems = await addItems(listId, [{ text: 'Local item' }])
+      const otherList = await createList('Other')
+      const otherItems = await addItems(otherList.id, [{ text: 'Other item' }])
+
+      const result = await executeToolCall('completeItems', {
+        itemIds: [localItems[0].id, otherItems[0].id],
+      }, listId)
+
+      expect(result.success).toBe(true)
+      expect(result.itemsCompleted).toBe(1)
+      expect(result.notFound).toContain(otherItems[0].id)
+
+      const localStored = await db.items.get(localItems[0].id)
+      const otherStored = await db.items.get(otherItems[0].id)
+      expect(localStored?.completed).toBe(true)
+      expect(otherStored?.completed).toBe(false)
+    })
   })
 
   describe('addAndCompleteItems', () => {

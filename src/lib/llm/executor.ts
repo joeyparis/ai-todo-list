@@ -27,9 +27,9 @@ function getErrorMessage(err: unknown): string {
   return String(err)
 }
 
-async function splitExistingAndMissingIds(itemIds: string[]): Promise<{ existingIds: string[]; missingIds: string[] }> {
+async function splitExistingAndMissingIds(itemIds: string[], listId: string): Promise<{ existingIds: string[]; missingIds: string[] }> {
   const existing = await db.items.where('id').anyOf(itemIds).toArray()
-  const existingIdSet = new Set(existing.map(item => item.id))
+  const existingIdSet = new Set(existing.filter(item => item.listId === listId).map(item => item.id))
   const existingIds = itemIds.filter(id => existingIdSet.has(id))
   const missingIds = itemIds.filter(id => !existingIdSet.has(id))
   return { existingIds, missingIds }
@@ -50,7 +50,7 @@ export async function executeToolCall(
 
       case 'completeItems': {
         const parsed = (todoTools.completeItems as any).inputSchema.parse(args)
-        const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds)
+        const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds, listId)
         if (existingIds.length > 0) {
           await completeItemsMutation(existingIds)
         }
@@ -59,7 +59,7 @@ export async function executeToolCall(
 
       case 'uncompleteItems': {
         const parsed = (todoTools.uncompleteItems as any).inputSchema.parse(args)
-        const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds)
+        const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds, listId)
         if (existingIds.length > 0) {
           await uncompleteItemsMutation(existingIds)
         }
@@ -69,7 +69,7 @@ export async function executeToolCall(
       case 'updateItem': {
         const parsed = (todoTools.updateItem as any).inputSchema.parse(args)
         const item = await db.items.get(parsed.itemId)
-        if (!item) {
+        if (!item || item.listId !== listId) {
           return { success: false, error: 'Item not found', notFound: [parsed.itemId] }
         }
 
@@ -87,7 +87,7 @@ export async function executeToolCall(
 
       case 'deleteItems': {
         const parsed = (todoTools.deleteItems as any).inputSchema.parse(args)
-        const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds)
+        const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds, listId)
         if (existingIds.length > 0) {
           await deleteItemsMutation(existingIds)
         }

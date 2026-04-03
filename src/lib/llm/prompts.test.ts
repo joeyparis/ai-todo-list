@@ -33,6 +33,8 @@ describe('buildSystemPrompt', () => {
     )
     expect(prompt).toContain('Weekend')
     expect(prompt).toContain('Task')
+    expect(prompt).toContain('Addition safety rules')
+    expect(prompt).toContain('do not call completion tools')
     expect(prompt.length).toBeGreaterThan(100)
     expect(prompt.length).toBeLessThan(8000)
   })

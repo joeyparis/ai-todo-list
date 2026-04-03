@@ -10,6 +10,81 @@ import { todoTools } from '@/lib/llm/tools'
 
 export const dynamic = 'force-dynamic'
 
+function extractTextFromMessageContent(content: unknown): string {
+  if (typeof content === 'string') {
+    return content
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map(part => {
+        if (typeof part === 'string') {
+          return part
+        }
+
+        if (typeof part === 'object' && part !== null && 'type' in part && (part as { type?: unknown }).type === 'text') {
+          const text = (part as { text?: unknown }).text
+          return typeof text === 'string' ? text : ''
+        }
+
+        return ''
+      })
+      .join(' ')
+  }
+
+  return ''
+}
+
+function getLatestUserText(messages: unknown): string {
+  if (!Array.isArray(messages)) {
+    return ''
+  }
+
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (typeof message !== 'object' || message === null) {
+      continue
+    }
+
+    const role = (message as { role?: unknown }).role
+    if (role !== 'user') {
+      continue
+    }
+
+    const partsText = Array.isArray((message as { parts?: unknown }).parts)
+      ? extractTextFromMessageContent((message as { parts?: unknown[] }).parts)
+      : ''
+    const contentText = extractTextFromMessageContent((message as { content?: unknown }).content)
+    return (partsText || contentText).trim()
+  }
+
+  return ''
+}
+
+function shouldRestrictCompletionTools(latestUserText: string): boolean {
+  if (!latestUserText) {
+    return false
+  }
+
+  const normalized = latestUserText.toLowerCase()
+  const hasCompletionLanguage =
+    /\b(done|finished|completed|already|i did|i finished|i completed|wrapped up|took care of|crossed off|picked up)\b/i.test(normalized)
+  if (hasCompletionLanguage) {
+    return false
+  }
+
+  return /\b(add|create|new|include|another|more|also|plus)\b/i.test(normalized)
+}
+
+function getAllowedTools(latestUserText: string) {
+  if (!shouldRestrictCompletionTools(latestUserText)) {
+    return todoTools
+  }
+
+  const { completeItems: _completeItems, addAndCompleteItems: _addAndCompleteItems, ...safeTools } = todoTools
+  return safeTools
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -24,6 +99,8 @@ export async function POST(req: NextRequest) {
       listState?.list ?? { name: 'My List' },
       listState?.items ?? [],
     )
+    const latestUserText = getLatestUserText(messages)
+    const allowedTools = getAllowedTools(latestUserText)
 
     let providerModel: LanguageModel
     switch (settings.provider) {
@@ -57,7 +134,7 @@ export async function POST(req: NextRequest) {
       model: providerModel,
       system: systemPrompt,
       messages: coreMessages,
-      tools: todoTools,
+      tools: allowedTools,
     })
 
     return result.toUIMessageStreamResponse()
