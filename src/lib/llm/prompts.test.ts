@@ -35,6 +35,8 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('Task')
     expect(prompt).toContain('Addition safety rules')
     expect(prompt).toContain('State source-of-truth rules')
+    expect(prompt).toContain('Metadata inference rules')
+    expect(prompt).toContain('List review rules')
     expect(prompt).toContain('current list context is authoritative')
     expect(prompt).toContain('do not call completion tools')
     expect(prompt).toContain('mark as done')
