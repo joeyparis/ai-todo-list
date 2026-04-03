@@ -8,6 +8,7 @@ import { useItems, useMessages, useSettings } from '@/lib/db/hooks'
 import { addMessage } from '@/lib/db/mutations'
 import type { Message as DbMessage } from '@/lib/db/types'
 import { executeToolCall } from '@/lib/llm/executor'
+import { createToolCallState } from './toolCallState'
 import {
   extractAssistantMessageParts,
   summarizeAssistantParts,
@@ -66,7 +67,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
     return persistedMessages.map(toUIMessage)
   }, [persistedMessages])
 
-  const executedToolCallsRef = useRef(new Set<string>())
+  const toolCallStateRef = useRef(createToolCallState())
   const chatRef = useRef<ReturnType<typeof useChat>>(null)
 
   const latestBodyRef = useRef({
@@ -117,21 +118,37 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       }
     },
     onToolCall: (async ({ toolCall }: any) => {
-      const callId = toolCall.toolCallId
-      if (callId && executedToolCallsRef.current.has(callId)) {
-        return
+      const callId = typeof toolCall.toolCallId === 'string' ? toolCall.toolCallId : undefined
+
+      const cachedResult = toolCallStateRef.current.getCachedResult(callId)
+      if (cachedResult !== undefined) {
+        return cachedResult
       }
-      if (callId) executedToolCallsRef.current.add(callId)
-      try {
-        const result = await executeToolCall(toolCall.toolName, toolCall.input ?? toolCall.args, listId)
-        chatRef.current?.addToolOutput({ tool: toolCall.toolName, toolCallId: callId, output: result })
-        return result
-      } catch (err) {
-        console.error('[ChatPanel] onToolCall error:', err)
-        const errorResult = { success: false, error: String(err) }
-        chatRef.current?.addToolOutput({ tool: toolCall.toolName, toolCallId: callId, state: 'output-error', errorText: String(err) })
-        return errorResult
+
+      const inFlightExecution = toolCallStateRef.current.getInFlight(callId)
+      if (inFlightExecution) {
+        return inFlightExecution
       }
+
+      const executionPromise = (async () => {
+        try {
+          const result = await executeToolCall(toolCall.toolName, toolCall.input ?? toolCall.args, listId)
+          toolCallStateRef.current.setCachedResult(callId, result)
+          chatRef.current?.addToolOutput({ tool: toolCall.toolName, toolCallId: callId, output: result })
+          return result
+        } catch (err) {
+          console.error('[ChatPanel] onToolCall error:', err)
+          const errorResult = { success: false, error: String(err) }
+          toolCallStateRef.current.setCachedResult(callId, errorResult)
+          chatRef.current?.addToolOutput({ tool: toolCall.toolName, toolCallId: callId, state: 'output-error', errorText: String(err) })
+          return errorResult
+        } finally {
+          toolCallStateRef.current.clearInFlight(callId)
+        }
+      })()
+
+      toolCallStateRef.current.setInFlight(callId, executionPromise)
+      return executionPromise
     }) as any,
   })
 
@@ -159,6 +176,8 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       await addMessage(listId, 'user', content, JSON.stringify(userParts))
 
       try {
+        toolCallStateRef.current.resetTurn()
+
         await chat.sendMessage(
           {
             text: content,
