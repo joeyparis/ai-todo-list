@@ -15,7 +15,7 @@ export const todoTools = {
   }),
 
   completeItems: tool({
-    description: 'Mark existing todo items as completed. Use this when the user says they did, finished, completed, or crossed off something that matches an existing item. Match by item ID.',
+    description: 'Mark existing todo items as completed. Use this when the user indicates completion in statements or commands, including done, finished, completed, crossed off, check off, or mark as done/complete. Match by item ID.',
     inputSchema: z.object({
       itemIds: z.array(z.string()).min(1).describe('Array of item IDs to mark as completed'),
     }),
@@ -29,7 +29,7 @@ export const todoTools = {
   }),
 
   updateItem: tool({
-    description: 'Update the text or metadata of an existing todo item. Use this when the user wants to edit, rename, or update the details/context of a specific item.',
+    description: 'Update the text or metadata of an existing todo item. Use this when the user wants to edit, rename, or update details/context. Never use this to mark completion status or represent done/complete by changing title text - use completeItems instead.',
     inputSchema: z.object({
       itemId: z.string().describe('The ID of the item to update'),
       text: z.string().min(1).optional().describe('New text for the item'),

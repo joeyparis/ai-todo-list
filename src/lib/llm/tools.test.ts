@@ -50,3 +50,14 @@ describe('addAndCompleteItems schema', () => {
     expect(result.items[0].text).toBe('Already done')
   })
 })
+
+describe('tool descriptions', () => {
+  it('guides completion phrases to completeItems', () => {
+    expect(todoTools.completeItems.description).toContain('mark as done/complete')
+  })
+
+  it('forbids using updateItem for completion status', () => {
+    expect(todoTools.updateItem.description).toContain('Never use this to mark completion status')
+    expect(todoTools.updateItem.description).toContain('use completeItems instead')
+  })
+})
