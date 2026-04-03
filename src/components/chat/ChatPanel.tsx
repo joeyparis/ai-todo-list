@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useChat } from '@ai-sdk/react'
 import type { UIMessage } from 'ai'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useItems, useMessages, useSettings } from '@/lib/db/hooks'
 import { addMessage } from '@/lib/db/mutations'
 import type { Message as DbMessage } from '@/lib/db/types'
@@ -14,6 +14,7 @@ import {
   summarizeAssistantParts,
   summarizeMessageForTranscript,
 } from './persistence'
+import { detectToolCallMismatch, buildCorrectionPrompt } from '@/lib/llm/verification'
 import { ChatInput } from './ChatInput'
 import { ChatMessages } from './ChatMessages'
 
@@ -67,6 +68,9 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
     return persistedMessages.map(toUIMessage)
   }, [persistedMessages])
 
+  const [pendingCorrection, setPendingCorrection] = useState<string | null>(null)
+  const correctionAttemptRef = useRef(0)
+
   const toolCallStateRef = useRef(createToolCallState())
   const chatRef = useRef<ReturnType<typeof useChat>>(null)
 
@@ -103,6 +107,11 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
         const parts = extractAssistantMessageParts(payload)
         if (!parts) {
           return
+        }
+
+        const verification = detectToolCallMismatch(parts as unknown[])
+        if (verification.mismatch && correctionAttemptRef.current === 0) {
+          setPendingCorrection(verification.claimedAction ?? 'performed action')
         }
 
         const textContent = summarizeAssistantParts(parts)
@@ -166,6 +175,21 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
     hasHydratedRef.current = true
   }, [initialMessages, persistedMessages, setMessages])
 
+  useEffect(() => {
+    if (pendingCorrection === null || status !== 'ready') {
+      return
+    }
+
+    correctionAttemptRef.current += 1
+    setPendingCorrection(null)
+
+    const correctionMessage = buildCorrectionPrompt(pendingCorrection)
+    chat.sendMessage(
+      { text: correctionMessage },
+      { body: { ...latestBodyRef.current } },
+    )
+  }, [pendingCorrection, status, chat])
+
   const handleSend = useCallback(
     async (content: string) => {
       if (!activeConfig?.apiKey) {
@@ -176,6 +200,7 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       await addMessage(listId, 'user', content, JSON.stringify(userParts))
 
       try {
+        correctionAttemptRef.current = 0
         toolCallStateRef.current.resetTurn()
 
         await chat.sendMessage(
@@ -240,7 +265,14 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
       ) : null}
 
       <ChatMessages messages={viewMessages} isLoading={isLoading} isStreaming={status === 'streaming'} />
-      
+
+      {pendingCorrection !== null || (status === 'submitted' && correctionAttemptRef.current > 0) ? (
+        <div className="px-4 py-2 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" role="img" aria-label="Correcting"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          The assistant claimed to take an action but didn&apos;t - retrying...
+        </div>
+      ) : null}
+
       {status === 'submitted' && (
         <div className="px-4 py-2 flex items-center gap-2 text-sm text-surface-500 dark:text-surface-400 animate-pulse bg-surface-50 dark:bg-surface-950">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" role="img" aria-label="Thinking"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>
