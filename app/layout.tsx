@@ -34,7 +34,14 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const deploymentId = process.env.VERCEL_DEPLOYMENT_ID ?? 'local'
+  const deployedAt = new Date().toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  })
 
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
@@ -48,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </Providers>
         <div className="pointer-events-none fixed bottom-2 inset-x-0 text-center text-[10px] leading-none text-surface-400 dark:text-surface-500">
-          Deployment ID: {deploymentId}
+          Deployed: {deployedAt}
         </div>
       </body>
     </html>
