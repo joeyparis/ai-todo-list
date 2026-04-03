@@ -98,9 +98,12 @@ function getTurnSpecificInstruction(latestUserText: string): string {
     '',
     'Turn-specific requirement:',
     'The latest user message indicates completion intent.',
+    'For this turn, treat current list context as source of truth over chat transcript.',
+    'If the matched item is not [done] in current list context, call completeItems instead of saying it was already done.',
     'Before your final reply, you must call exactly one completion tool when action is clear:',
     '- Use completeItems for existing tasks that match.',
     '- Use addAndCompleteItems only when the completed task is not on the list.',
+    '- Only say "already done" when the matched item is currently marked [done] in list context.',
     '- Do not acknowledge completion without the tool call.',
   ].join('\n')
 }

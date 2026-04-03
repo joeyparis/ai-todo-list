@@ -143,6 +143,8 @@ describe('POST /api/chat', () => {
     const call = (streamText as any).mock.calls[0][0]
     expect(call.system).toContain('Turn-specific requirement:')
     expect(call.system).toContain('Do not acknowledge completion without the tool call.')
+    expect(call.system).toContain('treat current list context as source of truth over chat transcript')
+    expect(call.system).toContain('Only say "already done" when the matched item is currently marked [done] in list context.')
   })
 
   it('does not add turn-specific completion instruction for add-only turns', async () => {
