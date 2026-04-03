@@ -27,7 +27,8 @@ async function createListViaUI(page: any, name: string) {
 
 function createExportFile(
   lists: Array<{ id: string; name: string }>,
-  items: Array<{ id: string; listId: string; text: string }> = []
+  items: Array<{ id: string; listId: string; text: string }> = [],
+  settings?: { activeProvider: string; providerConfigs: Record<string, { apiKey: string; model: string }> }
 ): string {
   const dir = tmpdir()
   const filePath = join(dir, `test-export-${Date.now()}.json`)
@@ -52,6 +53,7 @@ function createExportFile(
         updatedAt: now,
         order: 0,
       })),
+      ...(settings !== undefined ? { settings } : {}),
     },
   }
   writeFileSync(filePath, JSON.stringify(data))
@@ -189,6 +191,63 @@ test.describe('Import / Export', () => {
     await page.locator('input[type="file"]').setInputFiles(filePath)
     await expect(page.getByRole('button', { name: 'Import', exact: true })).toBeEnabled()
     await page.getByRole('button', { name: 'Import', exact: true }).click()
-    await expect(page.getByText(/Invalid JSON file/)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/Invalid file format/)).toBeVisible({ timeout: 5000 })
+  })
+
+  test('selective export only includes selected lists in downloaded file', async ({ page }) => {
+    await createListViaUI(page, 'List Alpha')
+    await createListViaUI(page, 'List Beta')
+    await page.goto('/settings')
+    await page.waitForLoadState('networkidle')
+
+    const listCheckboxes = page.locator('label').filter({ hasText: 'List Alpha' }).locator('input[type="checkbox"]')
+    await listCheckboxes.check()
+
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: 'Export' }).click()
+    ])
+
+    const filePath = await download.path()
+    const content = JSON.parse(readFileSync(filePath!, 'utf-8'))
+
+    expect(content.data.lists).toHaveLength(1)
+    expect(content.data.lists[0].name).toBe('List Alpha')
+  })
+
+  test('export with settings includes settings in downloaded JSON', async ({ page }) => {
+    await page.locator('input[type="password"]').fill('sk-test-key-for-export')
+    await page.waitForTimeout(500)
+
+    await page.getByLabel('Include Settings').check()
+
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: 'Export' }).click()
+    ])
+
+    const filePath = await download.path()
+    const content = JSON.parse(readFileSync(filePath!, 'utf-8'))
+
+    expect(content.data.settings).toBeDefined()
+    expect(content.data.settings.activeProvider).toBeDefined()
+  })
+
+  test('import with settings updates provider configuration', async ({ page }) => {
+    const exportFile = createExportFile(
+      [{ id: 'imported-list', name: 'Imported List' }],
+      [],
+      { activeProvider: 'anthropic', providerConfigs: { anthropic: { apiKey: 'sk-ant-test', model: 'claude-haiku-4-20250414' } } }
+    )
+
+    await page.locator('input[type="file"]').setInputFiles(exportFile)
+    await expect(page.getByRole('button', { name: 'Import', exact: true })).toBeEnabled()
+    await page.getByRole('button', { name: 'Import', exact: true }).click()
+    await expect(page.getByText(/Imported \d+ list/)).toBeVisible({ timeout: 5000 })
+
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.getByRole('button', { name: 'Anthropic' }).click()
+    await expect(page.locator('input[type="password"]')).toHaveValue('sk-ant-test')
   })
 })

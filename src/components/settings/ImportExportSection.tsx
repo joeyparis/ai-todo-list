@@ -101,7 +101,17 @@ export function ImportExportSection() {
       setImportFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err) {
-      setImportStatus({ type: 'error', message: err instanceof Error ? err.message : 'Import failed' })
+      let message = 'Import failed'
+      if (err instanceof SyntaxError || (err instanceof Error && err.message.includes('Invalid JSON'))) {
+        message = 'Invalid file format - please select a valid export JSON file'
+      } else if (err instanceof Error && (err.message.includes('ZodError') || err.message.includes('Expected') || err.message.includes('Required') || err.message.includes('invalid_type'))) {
+        message = 'Invalid file format - the file does not match the expected export structure'
+      } else if (err instanceof Error && err.message.includes('unknown list ID')) {
+        message = 'Invalid file format - the file contains items that reference missing lists'
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      setImportStatus({ type: 'error', message })
     } finally {
       setIsImporting(false)
     }

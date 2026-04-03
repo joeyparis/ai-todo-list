@@ -212,3 +212,59 @@ describe('importData - date round-trip', () => {
     expect(items[0].createdAt).toBeInstanceOf(Date)
   })
 })
+
+describe('importData - settings and atomicity', () => {
+  it('replace import: settings overwrite activeProvider and providerConfigs', async () => {
+    await db.settings.put({ id: 'settings', activeProvider: 'openai', providerConfigs: { openai: { apiKey: 'old-key', model: 'gpt-4o' } } })
+
+    const json = makeEnvelopeJson({
+      lists: [],
+      items: [],
+      settings: { activeProvider: 'anthropic', providerConfigs: { anthropic: { apiKey: 'new-key', model: 'claude-sonnet-4-20250514' } } }
+    })
+
+    await importData(json, 'replace')
+
+    const settings = await db.settings.get('settings')
+    expect(settings?.activeProvider).toBe('anthropic')
+    expect(settings?.providerConfigs.anthropic?.apiKey).toBe('new-key')
+  })
+
+  it('import with theme: sets localStorage theme', async () => {
+    const setItemMock = vi.fn()
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn().mockReturnValue(null),
+      setItem: setItemMock,
+      removeItem: vi.fn(),
+    })
+
+    const json = makeEnvelopeJson({
+      lists: [],
+      items: [],
+      settings: { activeProvider: 'openai', providerConfigs: { openai: { apiKey: 'sk-test', model: 'gpt-4o' } }, theme: 'dark' }
+    })
+
+    await importData(json, 'replace')
+
+    expect(setItemMock).toHaveBeenCalledWith('theme', 'dark')
+  })
+
+  it('validation failure leaves DB unchanged (atomicity)', async () => {
+    const list = await createList('Existing List')
+
+    const badJson = JSON.stringify({
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: {
+        lists: [{ id: 'list-a', name: 'A', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }],
+        items: [{ id: 'item-1', listId: 'non-existent-list-id', text: 'Orphan', completed: false, metadata: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), order: 0 }]
+      }
+    })
+
+    await expect(importData(badJson, 'merge')).rejects.toThrow()
+
+    const lists = await db.lists.toArray()
+    expect(lists).toHaveLength(1)
+    expect(lists[0].id).toBe(list.id)
+  })
+})
