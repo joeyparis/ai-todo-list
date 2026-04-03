@@ -157,6 +157,28 @@ describe('POST /api/chat', () => {
     expect(call.system).toContain('Only say "already done" when the matched item is currently marked [done] in list context.')
   })
 
+  it('forces completeItems for a clear active-item completion match', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'I set up the litterbox' }],
+      listState: {
+        list: { name: 'House' },
+        items: [
+          { id: 'item-litter', text: 'Set up new litter box', completed: false, metadata: {} },
+          { id: 'item-laundry', text: 'Do laundry', completed: false, metadata: {} },
+        ],
+      },
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.tools.completeItems).toBeTruthy()
+    expect(call.tools.addItems).toBeUndefined()
+    expect(call.tools.addAndCompleteItems).toBeUndefined()
+    expect(call.toolChoice).toEqual({ type: 'tool', toolName: 'completeItems' })
+    expect(call.system).toContain('Forced completion target:')
+    expect(call.system).toContain('itemIds:["item-litter"]')
+  })
+
   it('does not add turn-specific completion instruction for add-only turns', async () => {
     await POST(makeRequest({
       ...validBody,
@@ -231,5 +253,101 @@ describe('POST /api/chat', () => {
     expect(Array.isArray(convertedInput)).toBe(true)
     expect(convertedInput).toHaveLength(20)
     expect(convertedInput[convertedInput.length - 1]?.content).toBe('latest-user')
+  })
+
+  it('passes all tools to streamText regardless of message content', async () => {
+    // Test 1: completion message
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'I set up the litterbox' }],
+    }) as any)
+
+    let call = (streamText as any).mock.calls[0][0]
+    expect(call.tools.addItems).toBeTruthy()
+    expect(call.tools.completeItems).toBeTruthy()
+    expect(call.tools.uncompleteItems).toBeTruthy()
+    expect(call.tools.updateItem).toBeTruthy()
+    expect(call.tools.deleteItems).toBeTruthy()
+    expect(call.tools.addAndCompleteItems).toBeTruthy()
+
+    vi.clearAllMocks()
+
+    // Test 2: add message
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'add pick up dry cleaning' }],
+    }) as any)
+
+    call = (streamText as any).mock.calls[0][0]
+    expect(call.tools.addItems).toBeTruthy()
+    expect(call.tools.completeItems).toBeTruthy()
+    expect(call.tools.uncompleteItems).toBeTruthy()
+    expect(call.tools.updateItem).toBeTruthy()
+    expect(call.tools.deleteItems).toBeTruthy()
+    expect(call.tools.addAndCompleteItems).toBeTruthy()
+
+    vi.clearAllMocks()
+
+    // Test 3: neutral message
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'Hello' }],
+    }) as any)
+
+    call = (streamText as any).mock.calls[0][0]
+    expect(call.tools.addItems).toBeTruthy()
+    expect(call.tools.completeItems).toBeTruthy()
+    expect(call.tools.uncompleteItems).toBeTruthy()
+    expect(call.tools.updateItem).toBeTruthy()
+    expect(call.tools.deleteItems).toBeTruthy()
+    expect(call.tools.addAndCompleteItems).toBeTruthy()
+  })
+
+  it('does not set toolChoice on any request', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'I set up the litterbox' }],
+      listState: {
+        list: { name: 'House' },
+        items: [
+          { id: 'item-litter', text: 'Set up new litter box', completed: false, metadata: {} },
+          { id: 'item-laundry', text: 'Do laundry', completed: false, metadata: {} },
+        ],
+      },
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.toolChoice).toBeUndefined()
+  })
+
+  it('does not inject per-turn instructions into system prompt', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'I also did the groceries' }],
+      listState: {
+        list: { name: 'House' },
+        items: [
+          { id: 'item-groceries', text: 'Buy groceries', completed: false, metadata: {} },
+        ],
+      },
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.system).not.toContain('Turn-specific requirement:')
+    expect(call.system).not.toContain('Forced completion target:')
+  })
+
+  it('system prompt is built from list state only', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      listState: {
+        list: { name: 'My Weekend List' },
+        items: [{ id: 'x1', text: 'Buy eggs', completed: false, metadata: {} }],
+      },
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.system).toContain('My Weekend List')
+    expect(call.system).toContain('Buy eggs')
   })
 })

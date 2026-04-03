@@ -41,7 +41,42 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('Never use updateItem to represent completion')
     expect(prompt).toContain('Completion command -> completeItems')
     expect(prompt.length).toBeGreaterThan(100)
-    expect(prompt.length).toBeLessThan(8000)
+    expect(prompt.length).toBeLessThan(10000)
+  })
+
+  it('includes all 9 few-shot examples', () => {
+    const prompt = buildSystemPrompt(
+      { name: 'Test' } as any,
+      [{ id: 'x1', text: 'Task', completed: false, metadata: {} }] as any,
+    )
+    expect(prompt).toContain('1) Brain dump -> addItems')
+    expect(prompt).toContain('2) Fuzzy completion -> completeItems')
+    expect(prompt).toContain('3) Completion command -> completeItems')
+    expect(prompt).toContain('4) Already done but not on list -> addAndCompleteItems')
+    expect(prompt).toContain('5) Planning question -> smart response, no tool')
+    expect(prompt).toContain('6) Pronoun completion -> ask clarifying question')
+    expect(prompt).toContain('7) Completion with "also" modifier -> completeItems')
+    expect(prompt).toContain('8) Ambiguous match clarification -> ask before tool call')
+    expect(prompt).toContain('9) Already-completed item -> acknowledge, no tool call')
+  })
+
+  it('strengthens "also" disambiguation in Addition safety rules', () => {
+    const prompt = buildSystemPrompt(
+      { name: 'Test' } as any,
+      [{ id: 'x1', text: 'Task', completed: false, metadata: {} }] as any,
+    )
+    expect(prompt).toContain('The word "also" alone does not determine intent')
+    expect(prompt).toContain('I also finished X" is completion')
+    expect(prompt).toContain('I also need to add X" is addition')
+  })
+
+  it('maintains prompt size under limits', () => {
+    const prompt = buildSystemPrompt(
+      { name: 'Weekend' } as any,
+      [{ id: 'x1', text: 'Task', completed: false, metadata: {} }] as any,
+    )
+    expect(prompt.split('\n').length).toBeLessThan(300)
+    expect(prompt.length).toBeLessThan(10000)
   })
 
   it('produces valid prompt for empty list', () => {
