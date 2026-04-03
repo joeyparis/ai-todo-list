@@ -1,5 +1,5 @@
 'use client'
-import { use } from 'react'
+import { use, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { SplitScreen } from '@/components/SplitScreen'
 import { TodoPanel } from '@/components/todo/TodoPanel'
@@ -10,6 +10,10 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
   const { id } = use(params)
   const router = useRouter()
   const list = useList(id)
+  const clearChatRef = useRef<(() => void) | null>(null)
+  const handleClearChat = useCallback(() => {
+    clearChatRef.current?.()
+  }, [])
 
   if (list === undefined) {
     return (
@@ -70,8 +74,9 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
     <SplitScreen
       listName={list.name}
       listPanel={<TodoPanel listId={id} goal={list.goal} />}
-      chatPanel={<ChatPanel listId={id} list={list} />}
+      chatPanel={<ChatPanel listId={id} list={list} clearChatRef={clearChatRef} />}
       onBack={() => router.push('/')}
+      onClearChat={handleClearChat}
     />
   )
 }
