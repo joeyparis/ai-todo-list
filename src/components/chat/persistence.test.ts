@@ -1,6 +1,49 @@
 import { describe, expect, it } from 'vitest'
 import type { UIMessage } from 'ai'
-import { summarizeAssistantParts, summarizeMessageForTranscript } from './persistence'
+import {
+  extractAssistantMessageParts,
+  summarizeAssistantParts,
+  summarizeMessageForTranscript,
+} from './persistence'
+
+describe('extractAssistantMessageParts', () => {
+  it('extracts parts from nested onFinish.message payload', () => {
+    const parts = [{ type: 'text', text: 'Saved response' }]
+    const result = extractAssistantMessageParts({
+      message: {
+        role: 'assistant',
+        parts,
+      },
+    })
+
+    expect(result).toEqual(parts)
+  })
+
+  it('extracts text content when assistant content is a plain string', () => {
+    const result = extractAssistantMessageParts({
+      message: {
+        role: 'assistant',
+        content: 'Assistant content fallback',
+      },
+    })
+
+    expect(result).toEqual([{ type: 'text', text: 'Assistant content fallback' }])
+  })
+
+  it('falls back to last assistant message from messages array', () => {
+    const result = extractAssistantMessageParts({
+      message: {
+        role: 'assistant',
+      },
+      messages: [
+        { role: 'user', parts: [{ type: 'text', text: 'Hi' }] },
+        { role: 'assistant', content: [{ type: 'text', text: 'Recovered from history' }] },
+      ],
+    })
+
+    expect(result).toEqual([{ type: 'text', text: 'Recovered from history' }])
+  })
+})
 
 describe('summarizeAssistantParts', () => {
   it('returns text content when present', () => {

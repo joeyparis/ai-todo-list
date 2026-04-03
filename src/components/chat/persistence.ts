@@ -3,9 +3,12 @@ import type { UIMessage } from 'ai'
 type FinishPayload = {
   role?: unknown
   parts?: unknown
+  content?: unknown
+  messages?: unknown
   message?: {
     role?: unknown
     parts?: unknown
+    content?: unknown
   }
 }
 
@@ -17,6 +20,56 @@ function hasMessageObject(payload: FinishPayload): payload is FinishPayload & { 
   return typeof payload.message === 'object' && payload.message !== null
 }
 
+function extractTextFromContent(content: unknown): string {
+  if (typeof content === 'string') {
+    return content
+  }
+
+  if (!Array.isArray(content)) {
+    return ''
+  }
+
+  return content
+    .map(part => {
+      if (typeof part === 'string') {
+        return part
+      }
+
+      if (typeof part !== 'object' || part === null) {
+        return ''
+      }
+
+      const maybeText = (part as { text?: unknown }).text
+      return typeof maybeText === 'string' ? maybeText : ''
+    })
+    .join('')
+}
+
+function toTextParts(text: string): UIMessage['parts'] | null {
+  if (!text.trim()) {
+    return null
+  }
+
+  return [{ type: 'text', text }]
+}
+
+function extractAssistantPartsFromMessageLike(messageLike: unknown): UIMessage['parts'] | null {
+  if (typeof messageLike !== 'object' || messageLike === null) {
+    return null
+  }
+
+  const candidate = messageLike as { role?: unknown; parts?: unknown; content?: unknown }
+  if (!isAssistantRole(candidate.role)) {
+    return null
+  }
+
+  if (Array.isArray(candidate.parts)) {
+    return candidate.parts as UIMessage['parts']
+  }
+
+  return toTextParts(extractTextFromContent(candidate.content))
+}
+
 export function extractAssistantMessageParts(payload: unknown): UIMessage['parts'] | null {
   if (typeof payload !== 'object' || payload === null) {
     return null
@@ -24,16 +77,32 @@ export function extractAssistantMessageParts(payload: unknown): UIMessage['parts
 
   const finishPayload = payload as FinishPayload
 
-  if (isAssistantRole(finishPayload.role) && Array.isArray(finishPayload.parts)) {
-    return finishPayload.parts as UIMessage['parts']
+  const topLevelParts = extractAssistantPartsFromMessageLike(finishPayload)
+  if (topLevelParts) {
+    return topLevelParts
   }
 
-  if (
-    hasMessageObject(finishPayload) &&
-    isAssistantRole(finishPayload.message.role) &&
-    Array.isArray(finishPayload.message.parts)
-  ) {
-    return finishPayload.message.parts as UIMessage['parts']
+  if (hasMessageObject(finishPayload)) {
+    const nestedMessageParts = extractAssistantPartsFromMessageLike(finishPayload.message)
+    if (nestedMessageParts) {
+      return nestedMessageParts
+    }
+  }
+
+  if (Array.isArray(finishPayload.messages)) {
+    const lastAssistant = [...finishPayload.messages]
+      .reverse()
+      .find(message => {
+        if (typeof message !== 'object' || message === null) {
+          return false
+        }
+
+        return isAssistantRole((message as { role?: unknown }).role)
+      })
+
+    if (lastAssistant) {
+      return extractAssistantPartsFromMessageLike(lastAssistant)
+    }
   }
 
   return null
