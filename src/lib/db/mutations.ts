@@ -112,3 +112,7 @@ export async function reorderItems(listId: string, orderedIds: string[]): Promis
     orderedIds.map((id, index) => ({ key: id, changes: { order: index, updatedAt: now } }))
   )
 }
+
+export async function clearMessages(listId: string): Promise<void> {
+  await db.messages.where('listId').equals(listId).delete()
+}

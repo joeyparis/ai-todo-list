@@ -5,7 +5,7 @@ import { useChat } from '@ai-sdk/react'
 import type { UIMessage } from 'ai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useItems, useMessages, useSettings } from '@/lib/db/hooks'
-import { addMessage } from '@/lib/db/mutations'
+import { addMessage, clearMessages } from '@/lib/db/mutations'
 import type { Message as DbMessage } from '@/lib/db/types'
 import { executeToolCall } from '@/lib/llm/executor'
 import { createToolCallState } from './toolCallState'
@@ -220,6 +220,11 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
     [chat, listId, activeConfig?.apiKey],
   )
 
+  const handleClearChat = useCallback(async () => {
+    await clearMessages(listId)
+    setMessages([])
+  }, [listId, setMessages])
+
   const viewMessages = useMemo(
     () =>
       messages
@@ -262,6 +267,18 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0" role="img" aria-label="Error"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div>{error.message || 'Something went wrong while sending your message.'}</div>
         </div>
+      ) : null}
+
+      {viewMessages.length > 0 ? (
+        <button
+          type="button"
+          onClick={handleClearChat}
+          className="absolute top-3 right-3 z-10 p-1.5 rounded-lg text-surface-400 hover:text-surface-600 dark:text-surface-500 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+          title="Clear chat history"
+          aria-label="Clear chat history"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" role="img" aria-label="Clear chat"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+        </button>
       ) : null}
 
       <ChatMessages messages={viewMessages} isLoading={isLoading} isStreaming={status === 'streaming'} />
