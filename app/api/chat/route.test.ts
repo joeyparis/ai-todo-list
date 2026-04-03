@@ -123,6 +123,38 @@ describe('POST /api/chat', () => {
     expect(call.tools.addAndCompleteItems).toBeTruthy()
   })
 
+  it('keeps completion tools available for "I also did" phrasing', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'I also did the groceries' }],
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.tools.completeItems).toBeTruthy()
+    expect(call.tools.addAndCompleteItems).toBeTruthy()
+  })
+
+  it('adds turn-specific completion instruction when completion intent is detected', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'I also did the groceries' }],
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.system).toContain('Turn-specific requirement:')
+    expect(call.system).toContain('Do not acknowledge completion without the tool call.')
+  })
+
+  it('does not add turn-specific completion instruction for add-only turns', async () => {
+    await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'user', content: 'Also add pick up dry cleaning' }],
+    }) as any)
+
+    const call = (streamText as any).mock.calls[0][0]
+    expect(call.system).not.toContain('Turn-specific requirement:')
+  })
+
   it('selects the correct provider for anthropic', async () => {
     await POST(makeRequest({
       ...validBody,
