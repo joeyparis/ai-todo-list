@@ -34,17 +34,22 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const deploymentId = process.env.VERCEL_DEPLOYMENT_ID ?? 'local'
+
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icons/icon-192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className="font-sans antialiased bg-surface-50 text-surface-900 dark:bg-surface-900 dark:text-surface-100">
+      <body className="font-sans antialiased bg-surface-50 text-surface-900 dark:bg-surface-900 dark:text-surface-100 pb-8">
         <ThemeScript />
         <Providers googleClientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
           {children}
         </Providers>
+        <div className="pointer-events-none fixed bottom-2 inset-x-0 text-center text-[10px] leading-none text-surface-400 dark:text-surface-500">
+          Deployment ID: {deploymentId}
+        </div>
       </body>
     </html>
   )
