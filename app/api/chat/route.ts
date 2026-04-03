@@ -68,12 +68,41 @@ function shouldRestrictCompletionTools(latestUserText: string): boolean {
 
   const normalized = latestUserText.toLowerCase()
   const hasCompletionLanguage =
-    /\b(done|finished|completed|already|i did|i finished|i completed|wrapped up|took care of|crossed off|picked up)\b/i.test(normalized)
+    /\b(done|finished|completed|already|wrapped up|took care of|crossed off|check(?:ed)? off|picked up|knocked out)\b/i.test(normalized) ||
+    /\bi\s+(?:also\s+)?(?:already\s+)?(?:did|finished|completed)\b/i.test(normalized) ||
+    /\bthat(?:'s| is| was)\s+done\b/i.test(normalized)
   if (hasCompletionLanguage) {
     return false
   }
 
   return /\b(add|create|new|include|another|more|also|plus)\b/i.test(normalized)
+}
+
+function getTurnSpecificInstruction(latestUserText: string): string {
+  if (!latestUserText) {
+    return ''
+  }
+
+  const normalized = latestUserText.toLowerCase()
+  const indicatesCompletionIntent =
+    /\b(done|finished|completed|already|wrapped up|took care of|crossed off|check(?:ed)? off|picked up|knocked out)\b/i.test(normalized) ||
+    /\bi\s+(?:also\s+)?(?:already\s+)?(?:did|finished|completed)\b/i.test(normalized) ||
+    /\b(mark|check|cross)\b.*\b(done|complete|off)\b/i.test(normalized) ||
+    /\bthat(?:'s| is| was)\s+done\b/i.test(normalized)
+
+  if (!indicatesCompletionIntent) {
+    return ''
+  }
+
+  return [
+    '',
+    'Turn-specific requirement:',
+    'The latest user message indicates completion intent.',
+    'Before your final reply, you must call exactly one completion tool when action is clear:',
+    '- Use completeItems for existing tasks that match.',
+    '- Use addAndCompleteItems only when the completed task is not on the list.',
+    '- Do not acknowledge completion without the tool call.',
+  ].join('\n')
 }
 
 function getAllowedTools(latestUserText: string) {
@@ -95,12 +124,13 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const systemPrompt = buildSystemPrompt(
+    const baseSystemPrompt = buildSystemPrompt(
       listState?.list ?? { name: 'My List' },
       listState?.items ?? [],
     )
     const latestUserText = getLatestUserText(messages)
     const allowedTools = getAllowedTools(latestUserText)
+    const systemPrompt = `${baseSystemPrompt}${getTurnSpecificInstruction(latestUserText)}`
 
     let providerModel: LanguageModel
     switch (settings.provider) {
