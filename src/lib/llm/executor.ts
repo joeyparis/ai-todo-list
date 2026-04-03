@@ -20,6 +20,12 @@ export interface ToolResult {
   notFound?: string[]
 }
 
+function cleanItemText(text: string): string {
+  // Strip metadata that was accidentally concatenated into text
+  // Pattern: "Task name | key:value, key:value, ..."
+  return text.replace(/\s*\|.*$/, '').trim()
+}
+
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) {
     return err.message
@@ -44,8 +50,9 @@ export async function executeToolCall(
     switch (toolName) {
       case 'addItems': {
         const parsed = (todoTools.addItems as any).inputSchema.parse(args)
-        await addItemsMutation(listId, parsed.items)
-        return { success: true, itemsAdded: parsed.items.length }
+        const cleanedItems = parsed.items.map((item: any) => ({ ...item, text: cleanItemText(item.text) }))
+        await addItemsMutation(listId, cleanedItems)
+        return { success: true, itemsAdded: cleanedItems.length }
       }
 
       case 'completeItems': {
@@ -75,7 +82,7 @@ export async function executeToolCall(
 
         const fields: { text?: string; metadata?: Record<string, unknown> } = {}
         if (parsed.text !== undefined) {
-          fields.text = parsed.text
+          fields.text = cleanItemText(parsed.text)
         }
         if (parsed.metadata !== undefined) {
           fields.metadata = parsed.metadata
@@ -96,11 +103,9 @@ export async function executeToolCall(
 
       case 'addAndCompleteItems': {
         const parsed = (todoTools.addAndCompleteItems as any).inputSchema.parse(args)
-        await addItemsMutation(
-          listId,
-          parsed.items.map((item: any) => ({ ...item, completed: true }))
-        )
-        return { success: true, itemsAdded: parsed.items.length }
+        const cleanedItems = parsed.items.map((item: any) => ({ ...item, text: cleanItemText(item.text), completed: true }))
+        await addItemsMutation(listId, cleanedItems)
+        return { success: true, itemsAdded: cleanedItems.length }
       }
 
       default:

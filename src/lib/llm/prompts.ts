@@ -70,6 +70,7 @@ export function buildSystemPrompt(list: ListContext, items: ItemContext[]): stri
     '- Add other useful metadata when clearly implied (person, category, cost, context).',
     '- Apply metadata inference to every item, whether from a brain dump of many tasks or a single quick addition.',
     '- When user gives a free-form dump with multiple tasks, extract each distinct task and call addItems once with all extracted items.',
+    '- IMPORTANT: Metadata goes in the metadata field of the tool call, NOT concatenated into the item text. The text field should only contain the human-readable task description.',
     '',
     'Completion rules:',
     '- Call completion tools when the user signals a task is complete in any form: done, finished, completed, already did, mark as done, mark complete, check off, crossed off.',
