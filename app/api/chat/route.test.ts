@@ -56,6 +56,16 @@ describe('POST /api/chat', () => {
     expect(json.error).toContain('Missing')
   })
 
+  it('returns 400 when latest message is not from user', async () => {
+    const res = await POST(makeRequest({
+      ...validBody,
+      messages: [{ role: 'assistant', content: 'Done!' }],
+    }) as any)
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.error).toContain('Latest message must be from user')
+  })
+
   it('returns 400 when settings are missing', async () => {
     const res = await POST(makeRequest({ messages: [{ role: 'user', content: 'hi' }] }) as any)
     expect(res.status).toBe(400)
@@ -201,5 +211,25 @@ describe('POST /api/chat', () => {
     expect(res.status).toBe(500)
     const json = await res.json()
     expect(json.error).toContain('Something went wrong')
+  })
+
+  it('uses only the most recent 20 messages for model conversion', async () => {
+    const messages = Array.from({ length: 30 }, (_, index) => ({
+      role: index % 2 === 0 ? 'user' : 'assistant',
+      content: `m-${index}`,
+    }))
+    messages[messages.length - 1] = { role: 'user', content: 'latest-user' }
+
+    await POST(makeRequest({
+      ...validBody,
+      messages,
+    }) as any)
+
+    const { convertToModelMessages } = await import('ai')
+    expect(convertToModelMessages).toHaveBeenCalledOnce()
+    const convertedInput = (convertToModelMessages as any).mock.calls[0][0]
+    expect(Array.isArray(convertedInput)).toBe(true)
+    expect(convertedInput).toHaveLength(20)
+    expect(convertedInput[convertedInput.length - 1]?.content).toBe('latest-user')
   })
 })

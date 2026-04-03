@@ -61,6 +61,23 @@ function getLatestUserText(messages: unknown): string {
   return ''
 }
 
+function getRecentMessages(messages: unknown): Omit<UIMessage, 'id'>[] {
+  if (!Array.isArray(messages)) {
+    return []
+  }
+
+  return messages
+    .filter((message): message is Omit<UIMessage, 'id'> => {
+      if (typeof message !== 'object' || message === null) {
+        return false
+      }
+
+      const role = (message as { role?: unknown }).role
+      return role === 'user' || role === 'assistant' || role === 'system'
+    })
+    .slice(-20)
+}
+
 function shouldRestrictCompletionTools(latestUserText: string): boolean {
   if (!latestUserText) {
     return false
@@ -121,17 +138,23 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { messages, listState, settings } = body
+    const recentMessages = getRecentMessages(messages)
 
     // Validate required fields
-    if (!messages || !settings?.apiKey || !settings?.provider || !settings?.model) {
+    if (recentMessages.length === 0 || !settings?.apiKey || !settings?.provider || !settings?.model) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const latestMessage = recentMessages.at(-1)
+    if (!latestMessage || latestMessage.role !== 'user') {
+      return Response.json({ error: 'Latest message must be from user' }, { status: 400 })
     }
 
     const baseSystemPrompt = buildSystemPrompt(
       listState?.list ?? { name: 'My List' },
       listState?.items ?? [],
     )
-    const latestUserText = getLatestUserText(messages)
+    const latestUserText = getLatestUserText(recentMessages)
     const allowedTools = getAllowedTools(latestUserText)
     const systemPrompt = `${baseSystemPrompt}${getTurnSpecificInstruction(latestUserText)}`
 
@@ -159,7 +182,7 @@ export async function POST(req: NextRequest) {
         return Response.json({ error: 'Unsupported provider' }, { status: 400 })
     }
 
-    const coreMessages = await convertToModelMessages(messages as Omit<UIMessage, 'id'>[], {
+    const coreMessages = await convertToModelMessages(recentMessages, {
       ignoreIncompleteToolCalls: true,
     })
 

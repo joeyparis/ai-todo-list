@@ -165,7 +165,6 @@ export function ChatPanel({ listId, list }: ChatPanelProps) {
           },
           {
             body: {
-              messages: chat.messages.slice(-20),
               ...latestBodyRef.current,
             },
           },
