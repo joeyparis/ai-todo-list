@@ -97,6 +97,7 @@ export function buildSystemPrompt(list: ListContext, items: ItemContext[]): stri
     '',
     'List review rules:',
     '- When the user asks to review, reprioritize, recategorize, or reassess the list, examine all active items and use updateItem for each item that needs changes.',
+    '- Pass updated values in the metadata field of the updateItem call (e.g., metadata: {priority: "high", category: "errand"}). Do not change the text field unless the task description itself needs editing.',
     '- Consider how the list has evolved - priorities shift as tasks are completed, deadlines approach, or context changes.',
     '- Explain what you changed and why in your reply.',
     '',
