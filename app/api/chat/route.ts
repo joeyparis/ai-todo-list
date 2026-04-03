@@ -35,32 +35,6 @@ function extractTextFromMessageContent(content: unknown): string {
   return ''
 }
 
-function getLatestUserText(messages: unknown): string {
-  if (!Array.isArray(messages)) {
-    return ''
-  }
-
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index]
-    if (typeof message !== 'object' || message === null) {
-      continue
-    }
-
-    const role = (message as { role?: unknown }).role
-    if (role !== 'user') {
-      continue
-    }
-
-    const partsText = Array.isArray((message as { parts?: unknown }).parts)
-      ? extractTextFromMessageContent((message as { parts?: unknown[] }).parts)
-      : ''
-    const contentText = extractTextFromMessageContent((message as { content?: unknown }).content)
-    return (partsText || contentText).trim()
-  }
-
-  return ''
-}
-
 function getRecentMessages(messages: unknown): Omit<UIMessage, 'id'>[] {
   if (!Array.isArray(messages)) {
     return []
@@ -78,62 +52,6 @@ function getRecentMessages(messages: unknown): Omit<UIMessage, 'id'>[] {
     .slice(-20)
 }
 
-function shouldRestrictCompletionTools(latestUserText: string): boolean {
-  if (!latestUserText) {
-    return false
-  }
-
-  const normalized = latestUserText.toLowerCase()
-  const hasCompletionLanguage =
-    /\b(done|finished|completed|already|wrapped up|took care of|crossed off|check(?:ed)? off|picked up|knocked out)\b/i.test(normalized) ||
-    /\bi\s+(?:also\s+)?(?:already\s+)?(?:did|finished|completed)\b/i.test(normalized) ||
-    /\bthat(?:'s| is| was)\s+done\b/i.test(normalized)
-  if (hasCompletionLanguage) {
-    return false
-  }
-
-  return /\b(add|create|new|include|another|more|also|plus)\b/i.test(normalized)
-}
-
-function getTurnSpecificInstruction(latestUserText: string): string {
-  if (!latestUserText) {
-    return ''
-  }
-
-  const normalized = latestUserText.toLowerCase()
-  const indicatesCompletionIntent =
-    /\b(done|finished|completed|already|wrapped up|took care of|crossed off|check(?:ed)? off|picked up|knocked out)\b/i.test(normalized) ||
-    /\bi\s+(?:also\s+)?(?:already\s+)?(?:did|finished|completed)\b/i.test(normalized) ||
-    /\b(mark|check|cross)\b.*\b(done|complete|off)\b/i.test(normalized) ||
-    /\bthat(?:'s| is| was)\s+done\b/i.test(normalized)
-
-  if (!indicatesCompletionIntent) {
-    return ''
-  }
-
-  return [
-    '',
-    'Turn-specific requirement:',
-    'The latest user message indicates completion intent.',
-    'For this turn, treat current list context as source of truth over chat transcript.',
-    'If the matched item is not [done] in current list context, call completeItems instead of saying it was already done.',
-    'Before your final reply, you must call exactly one completion tool when action is clear:',
-    '- Use completeItems for existing tasks that match.',
-    '- Use addAndCompleteItems only when the completed task is not on the list.',
-    '- Only say "already done" when the matched item is currently marked [done] in list context.',
-    '- Do not acknowledge completion without the tool call.',
-  ].join('\n')
-}
-
-function getAllowedTools(latestUserText: string) {
-  if (!shouldRestrictCompletionTools(latestUserText)) {
-    return todoTools
-  }
-
-  const { completeItems: _completeItems, addAndCompleteItems: _addAndCompleteItems, ...safeTools } = todoTools
-  return safeTools
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -149,14 +67,6 @@ export async function POST(req: NextRequest) {
     if (!latestMessage || latestMessage.role !== 'user') {
       return Response.json({ error: 'Latest message must be from user' }, { status: 400 })
     }
-
-    const baseSystemPrompt = buildSystemPrompt(
-      listState?.list ?? { name: 'My List' },
-      listState?.items ?? [],
-    )
-    const latestUserText = getLatestUserText(recentMessages)
-    const allowedTools = getAllowedTools(latestUserText)
-    const systemPrompt = `${baseSystemPrompt}${getTurnSpecificInstruction(latestUserText)}`
 
     let providerModel: LanguageModel
     switch (settings.provider) {
@@ -188,9 +98,9 @@ export async function POST(req: NextRequest) {
 
     const result = streamText({
       model: providerModel,
-      system: systemPrompt,
+      system: buildSystemPrompt(listState?.list ?? { name: 'My List' }, listState?.items ?? []),
       messages: coreMessages,
-      tools: allowedTools,
+      tools: todoTools,
     })
 
     return result.toUIMessageStreamResponse()
