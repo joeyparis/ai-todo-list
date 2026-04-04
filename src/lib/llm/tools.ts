@@ -37,6 +37,16 @@ export const todoTools = {
     }),
   }),
 
+  updateItems: tool({
+    description: 'Update metadata for multiple items at once. Use this when the user asks to reprioritize, recategorize, or review the entire list.',
+    inputSchema: z.object({
+      updates: z.array(z.object({
+        itemId: z.string().describe('The ID of the item to update'),
+        metadata: z.record(z.unknown()).describe('Updated metadata for the item'),
+      })).min(1).describe('Array of items to update with new metadata'),
+    }),
+  }),
+
   deleteItems: tool({
     description: 'Permanently remove one or more items from the list. Use this when the user explicitly asks to delete, remove, or cancel items (not complete them).',
     inputSchema: z.object({

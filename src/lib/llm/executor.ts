@@ -92,6 +92,22 @@ export async function executeToolCall(
         return { success: true, itemsUpdated: 1 }
       }
 
+      case 'updateItems': {
+        const parsed = (todoTools.updateItems as any).inputSchema.parse(args)
+        let updatedCount = 0
+        const missing: string[] = []
+        for (const update of parsed.updates) {
+          const item = await db.items.get(update.itemId)
+          if (!item || item.listId !== listId) {
+            missing.push(update.itemId)
+            continue
+          }
+          await updateItemMutation(update.itemId, { metadata: update.metadata })
+          updatedCount++
+        }
+        return { success: true, itemsUpdated: updatedCount, notFound: missing }
+      }
+
       case 'deleteItems': {
         const parsed = (todoTools.deleteItems as any).inputSchema.parse(args)
         const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds, listId)

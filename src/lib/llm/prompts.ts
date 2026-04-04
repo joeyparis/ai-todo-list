@@ -69,6 +69,7 @@ export function buildSystemPrompt(list: ListContext, items: ItemContext[]): stri
     '- If a request clearly matches one item, call the tool.',
     '- If a request is ambiguous or could match multiple items, ask which one.',
     '- For questions about what to do next or prioritization advice, respond without a tool call.',
+    '- When asked to reprioritize, recategorize, or review the list, use updateItems to update all items that need changes in a single call.',
     '',
     'Remember: call tools to change the list. Text does not change the list.',
   ].join('\n')
