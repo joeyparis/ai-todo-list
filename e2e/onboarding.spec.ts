@@ -41,6 +41,11 @@ test.describe('Onboarding Flow', () => {
     await page.locator('input[placeholder="List name"]').fill('Test List')
     await page.getByRole('button', { name: 'Create', exact: true }).click()
     await page.waitForURL(/\/list\/[a-z0-9-]+/)
+    await expect(page.getByPlaceholder('Brain dump your tasks...')).toBeVisible()
+    const tasksTab = page.locator('[data-testid="tab-tasks"]')
+    if (await tasksTab.isVisible().catch(() => false)) {
+      await tasksTab.click()
+    }
     await expect(page.getByText('No items yet.')).toBeVisible()
     await expect(page.getByText('Missing AI settings')).toBeVisible()
   })

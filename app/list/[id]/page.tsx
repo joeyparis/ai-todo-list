@@ -4,18 +4,19 @@ import { useRouter } from 'next/navigation'
 import { SplitScreen } from '@/components/SplitScreen'
 import { TodoPanel } from '@/components/todo/TodoPanel'
 import { ChatPanel } from '@/components/chat/ChatPanel'
-import { useList } from '@/lib/db/hooks'
+import { useItems, useList } from '@/lib/db/hooks'
 
 export default function ListPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const list = useList(id)
+  const items = useItems(id)
   const clearChatRef = useRef<(() => void) | null>(null)
   const handleClearChat = useCallback(() => {
     clearChatRef.current?.()
   }, [])
 
-  if (list === undefined) {
+  if (list === undefined || items === undefined) {
     return (
       <div className="flex flex-col md:flex-row h-[100dvh] bg-surface-50 dark:bg-surface-950 overflow-hidden">
         <div className="md:hidden h-14 border-b border-surface-200 dark:border-surface-800 flex items-center px-4 bg-white dark:bg-surface-900">
@@ -77,6 +78,7 @@ export default function ListPage({ params }: { params: Promise<{ id: string }> }
       chatPanel={<ChatPanel listId={id} list={list} clearChatRef={clearChatRef} />}
       onBack={() => router.push('/')}
       onClearChat={handleClearChat}
+      startOnChat={items.length === 0}
     />
   )
 }

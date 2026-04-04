@@ -34,15 +34,15 @@ test.describe('Mobile Responsive', () => {
     
     await expect(page.locator('[data-testid="split-divider"]')).not.toBeVisible()
     
-    await expect(page.locator('input[placeholder="Add item..."]')).toBeVisible()
-    await expect(page.getByPlaceholder('Brain dump your tasks...')).not.toBeVisible()
-    
-    await chatTab.click()
     await expect(page.getByPlaceholder('Brain dump your tasks...')).toBeVisible()
     await expect(page.locator('input[placeholder="Add item..."]')).not.toBeVisible()
     
     await tasksTab.click()
     await expect(page.locator('input[placeholder="Add item..."]')).toBeVisible()
     await expect(page.getByPlaceholder('Brain dump your tasks...')).not.toBeVisible()
+
+    await chatTab.click()
+    await expect(page.getByPlaceholder('Brain dump your tasks...')).toBeVisible()
+    await expect(page.locator('input[placeholder="Add item..."]')).not.toBeVisible()
   })
 })

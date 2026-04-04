@@ -17,6 +17,10 @@ async function createListAndNavigate(page: Page, name: string) {
   await page.getByRole('button', { name: 'Create', exact: true }).click()
   await page.waitForURL(/\/list\/[a-z0-9-]+/)
   await page.waitForLoadState('networkidle')
+  const tasksTab = page.locator('[data-testid="tab-tasks"]')
+  if (await tasksTab.isVisible().catch(() => false)) {
+    await tasksTab.click()
+  }
   await page.waitForSelector('input[placeholder="Add item..."]')
 }
 

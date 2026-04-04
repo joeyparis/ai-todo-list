@@ -9,14 +9,15 @@ interface SplitScreenProps {
   chatPanel: React.ReactNode
   onBack: () => void
   onClearChat?: () => void
+  startOnChat?: boolean
 }
 
-export function SplitScreen({ listName, listPanel, chatPanel, onBack, onClearChat }: SplitScreenProps) {
+export function SplitScreen({ listName, listPanel, chatPanel, onBack, onClearChat, startOnChat = false }: SplitScreenProps) {
   const [listVisible, setListVisible] = useState(true)
   const [chatVisible, setChatVisible] = useState(true)
   const [splitRatio, setSplitRatio] = useState(0.5)
   const [orientation, setOrientation] = useState<'vertical' | 'horizontal'>('horizontal')
-  const [activeTab, setActiveTab] = useState<'tasks' | 'chat'>('tasks')
+  const [activeTab, setActiveTab] = useState<'tasks' | 'chat'>(startOnChat ? 'chat' : 'tasks')
   const containerRef = useRef<HTMLDivElement | null>(null)
   const draggingRef = useRef(false)
   const [isDragging, setIsDragging] = useState(false)
