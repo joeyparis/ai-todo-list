@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/Providers'
 import { ThemeScript } from '@/components/ThemeScript'
+import { DeployTimestamp } from '@/components/DeployTimestamp'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -34,15 +35,6 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const deployedAt = new Date().toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  })
-
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
@@ -55,7 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </Providers>
         <div className="pointer-events-none fixed bottom-2 inset-x-0 text-center text-[10px] leading-none text-surface-400 dark:text-surface-500">
-          Deployed: {deployedAt}
+          <DeployTimestamp />
         </div>
       </body>
     </html>
