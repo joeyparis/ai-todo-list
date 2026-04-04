@@ -26,66 +26,52 @@ describe('serializeListState', () => {
 })
 
 describe('buildSystemPrompt', () => {
-  it('includes list context and instructions', () => {
-    const prompt = buildSystemPrompt(
-      { name: 'Weekend' } as any,
-      [{ id: 'x1', text: 'Task', completed: false, metadata: {} }] as any,
-    )
+  const list = { name: 'Weekend' } as any
+  const items = [{ id: 'x1', text: 'Task', completed: false, metadata: {} }] as any
+
+  it('includes list context', () => {
+    const prompt = buildSystemPrompt(list, items)
     expect(prompt).toContain('Weekend')
     expect(prompt).toContain('Task')
-    expect(prompt).toContain('Addition safety rules')
-    expect(prompt).toContain('State source-of-truth rules')
-    expect(prompt).toContain('Metadata inference rules')
-    expect(prompt).toContain('List review rules')
-    expect(prompt).toContain('current list context is authoritative')
-    expect(prompt).toContain('do not call completion tools')
-    expect(prompt).toContain('mark as done')
-    expect(prompt).toContain('Never use updateItem to represent completion')
-    expect(prompt).toContain('Critical tool-calling rule')
-    expect(prompt).toContain('Text alone does not change the list')
-    expect(prompt).toContain('3) Completion command:')
-    expect(prompt.length).toBeGreaterThan(100)
-    expect(prompt.length).toBeLessThan(10000)
   })
 
-  it('includes all 9 few-shot examples', () => {
-    const prompt = buildSystemPrompt(
-      { name: 'Test' } as any,
-      [{ id: 'x1', text: 'Task', completed: false, metadata: {} }] as any,
-    )
-    expect(prompt).toContain('1) Brain dump:')
-    expect(prompt).toContain('2) Fuzzy completion:')
-    expect(prompt).toContain('3) Completion command:')
-    expect(prompt).toContain('4) Already done but not on list:')
-    expect(prompt).toContain('5) Planning question:')
-    expect(prompt).toContain('6) Pronoun completion:')
-    expect(prompt).toContain('7) Completion with "also" modifier:')
-    expect(prompt).toContain('8) Ambiguous match:')
-    expect(prompt).toContain('9) Already-completed item:')
+  it('establishes tool-calling role in first 300 characters', () => {
+    const prompt = buildSystemPrompt(list, items)
+    const opening = prompt.substring(0, 300)
+    expect(opening.toLowerCase()).toMatch(/tool call/)
   })
 
-  it('strengthens "also" disambiguation in Addition safety rules', () => {
-    const prompt = buildSystemPrompt(
-      { name: 'Test' } as any,
-      [{ id: 'x1', text: 'Task', completed: false, metadata: {} }] as any,
-    )
-    expect(prompt).toContain('The word "also" alone does not determine intent')
-    expect(prompt).toContain('I also finished X" is completion')
-    expect(prompt).toContain('I also need to add X" is addition')
+  it('static portion is under 2500 characters', () => {
+    const prompt = buildSystemPrompt({ name: 'Test' } as any, [])
+    expect(prompt.length).toBeLessThan(2500)
   })
 
-  it('maintains prompt size under limits', () => {
-    const prompt = buildSystemPrompt(
-      { name: 'Weekend' } as any,
-      [{ id: 'x1', text: 'Task', completed: false, metadata: {} }] as any,
-    )
-    expect(prompt.split('\n').length).toBeLessThan(300)
-    expect(prompt.length).toBeLessThan(10000)
+  it('contains no numbered few-shot example patterns', () => {
+    const prompt = buildSystemPrompt(list, items)
+    expect(prompt).not.toMatch(/^\d+\)/m)
+    expect(prompt).not.toContain('Few-shot examples')
+    expect(prompt).not.toContain('Behavior:')
   })
 
-  it('produces valid prompt for empty list', () => {
-    const prompt = buildSystemPrompt({ name: 'New List' } as any, [])
-    expect(prompt).toContain('New List')
-    expect(prompt.length).toBeGreaterThan(50)
+  it('contains metadata guidance', () => {
+    const prompt = buildSystemPrompt(list, items)
+    expect(prompt.toLowerCase()).toContain('metadata')
+  })
+
+  it('contains source-of-truth rule', () => {
+    const prompt = buildSystemPrompt(list, items)
+    const lower = prompt.toLowerCase()
+    expect(lower).toMatch(/authoritative|source of truth|list context.*authoritative/i)
+  })
+
+  it('ends with a reinforcement of tool-calling', () => {
+    const prompt = buildSystemPrompt(list, items)
+    const closing = prompt.substring(prompt.length - 300)
+    expect(closing.toLowerCase()).toMatch(/tool call/)
+  })
+
+  it('is under 80 lines for static portion', () => {
+    const prompt = buildSystemPrompt({ name: 'Test' } as any, [])
+    expect(prompt.split('\n').length).toBeLessThan(80)
   })
 })
