@@ -1,3 +1,5 @@
+import { CORE_METADATA_RULES } from './metadata'
+
 type ListContext = {
   name: string
   goal?: string
@@ -58,7 +60,7 @@ export function buildSystemPrompt(list: ListContext, items: ItemContext[]): stri
     listState,
     '',
     'When adding or updating items:',
-    '- Always include metadata: infer priority (high/medium/low), effort (quick/medium/long), category, location, skipability (must-do/nice-to-have/optional) from context.',
+    `- Always include metadata using only these keys and values: ${CORE_METADATA_RULES}.`,
     '- Metadata goes in the metadata field of the tool call, not in the item text.',
     '',
     'State rules:',

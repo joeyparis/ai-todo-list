@@ -1,14 +1,23 @@
 import { tool } from 'ai'
 import { z } from 'zod'
+import { CORE_METADATA_RULES, CORE_METADATA_VALUES } from './metadata'
+
+const coreMetadataSchema = z.object({
+  priority: z.enum(CORE_METADATA_VALUES.priority).optional(),
+  effort: z.enum(CORE_METADATA_VALUES.effort).optional(),
+  category: z.enum(CORE_METADATA_VALUES.category).optional(),
+  location: z.enum(CORE_METADATA_VALUES.location).optional(),
+  skipability: z.enum(CORE_METADATA_VALUES.skipability).optional(),
+}).strict()
 
 const itemInputSchema = z.array(z.object({
   text: z.string().min(1).describe('The text content of the todo item'),
-  metadata: z.record(z.unknown()).optional().describe('Optional inferred metadata (priority, location, effort, skipability, etc.)'),
+  metadata: coreMetadataSchema.optional().describe(`Optional inferred metadata using only these keys and values: ${CORE_METADATA_RULES}`),
 }))
 
 export const todoTools = {
   addItems: tool({
-    description: 'Add one or more new todo items to the current list. Use this when the user describes tasks, activities, or things they need to do. Infer metadata (priority, location, effort, skipability) from context when possible.',
+    description: `Add one or more new todo items to the current list. Use this when the user describes tasks, activities, or things they need to do. Infer metadata from context when possible using only this core schema: ${CORE_METADATA_RULES}.`,
     inputSchema: z.object({
       items: itemInputSchema.describe('Array of items to add'),
     }),
@@ -33,16 +42,16 @@ export const todoTools = {
     inputSchema: z.object({
       itemId: z.string().describe('The ID of the item to update'),
       text: z.string().min(1).optional().describe('New text for the item'),
-      metadata: z.record(z.unknown()).optional().describe('Updated metadata for the item'),
+      metadata: coreMetadataSchema.optional().describe(`Updated metadata for the item. Allowed keys/values: ${CORE_METADATA_RULES}`),
     }),
   }),
 
   updateItems: tool({
-    description: 'Update metadata for multiple items at once. Use this when the user asks to reprioritize, recategorize, or review the entire list.',
+    description: `Update metadata for multiple items at once. Use this when the user asks to reprioritize, recategorize, or review the entire list. Use only this core metadata schema: ${CORE_METADATA_RULES}.`,
     inputSchema: z.object({
       updates: z.array(z.object({
         itemId: z.string().describe('The ID of the item to update'),
-        metadata: z.record(z.unknown()).describe('Updated metadata for the item'),
+        metadata: coreMetadataSchema.describe(`Updated metadata for the item. Allowed keys/values: ${CORE_METADATA_RULES}`),
       })).min(1).describe('Array of items to update with new metadata'),
     }),
   }),
