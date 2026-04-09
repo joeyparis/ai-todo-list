@@ -6,7 +6,7 @@ describe('serializeListState', () => {
     const result = serializeListState(
       { name: 'Errands', goal: 'By Sunday' } as any,
       [
-        { id: 'a1', text: 'Buy milk', completed: false, metadata: { priority: 'high', location: 'Store' } },
+         { id: 'a1', text: 'Buy milk', completed: false, metadata: { priority: 'high' } },
         { id: 'b2', text: 'Walk dog', completed: true, metadata: {} },
       ] as any,
     )
