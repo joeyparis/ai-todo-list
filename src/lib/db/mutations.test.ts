@@ -45,7 +45,7 @@ describe('addItems', () => {
   it('adds items with metadata', async () => {
     const list = await createList('Test')
     const items = await addItems(list.id, [
-      { text: 'Buy milk', metadata: { priority: 'high', location: 'Store' } },
+      { text: 'Buy milk', metadata: { priority: 'high' } },
       { text: 'Call dentist' },
     ])
     expect(items).toHaveLength(2)

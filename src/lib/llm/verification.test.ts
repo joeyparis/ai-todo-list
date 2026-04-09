@@ -106,15 +106,15 @@ describe('detectToolCallMismatch', () => {
   })
 
   describe('negative - few-shot texts WITHOUT tool (no action claim in text)', () => {
-    it('example 5: planning response does not trigger', () => {
-      const result = detectToolCallMismatch([
-        {
-          type: 'text',
-          text: "Start with must-do quick items first, then batch errands by location.",
-        },
-      ])
-      expect(result.mismatch).toBe(false)
-    })
+     it('example 5: planning response does not trigger', () => {
+       const result = detectToolCallMismatch([
+         {
+           type: 'text',
+           text: "Start with high-priority quick items first, then work through the rest by effort level.",
+         },
+       ])
+       expect(result.mismatch).toBe(false)
+     })
 
     it('example 6: clarifying question does not trigger', () => {
       const result = detectToolCallMismatch([

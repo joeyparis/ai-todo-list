@@ -37,6 +37,21 @@ export class TodoDatabase extends Dexie {
         }
       })
     })
+
+    this.version(3).stores({
+      lists: 'id, updatedAt',
+      items: 'id, listId, order',
+      messages: 'id, listId, createdAt',
+      settings: 'id',
+    }).upgrade(tx => {
+      return tx.table('items').toCollection().modify((item: any) => {
+        if (item.metadata) {
+          delete item.metadata.category
+          delete item.metadata.location
+          delete item.metadata.skipability
+        }
+      })
+    })
   }
 }
 
