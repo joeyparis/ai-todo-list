@@ -19,10 +19,11 @@ describe('addItems schema', () => {
     })).toThrow()
   })
 
-  it('rejects metadata with unknown keys', () => {
-    expect(() => (todoTools.addItems.inputSchema as any).parse({
+  it('strips unknown metadata keys silently', () => {
+    const result = (todoTools.addItems.inputSchema as any).parse({
       items: [{ text: 'Buy milk', metadata: { dueDate: 'tomorrow' } }],
-    })).toThrow()
+    })
+    expect(result.items[0].metadata).toEqual({})
   })
 
   it('rejects metadata with invalid enum values', () => {
@@ -59,12 +60,22 @@ describe('updateItem schema', () => {
       metadata: {
         priority: 'medium',
         effort: 'quick',
-        category: 'admin',
-        location: 'computer',
-        skipability: 'must-do',
       },
     })
     expect(result.metadata.priority).toBe('medium')
+  })
+
+  it('strips unknown metadata fields silently', () => {
+    const result = (todoTools.updateItem.inputSchema as any).safeParse({
+      itemId: 'abc',
+      metadata: {
+        priority: 'high',
+        category: 'work',
+      },
+    })
+    expect(result.success).toBe(true)
+    expect(result.data.metadata.priority).toBe('high')
+    expect(result.data.metadata.category).toBeUndefined()
   })
 })
 

@@ -5,10 +5,7 @@ import { CORE_METADATA_RULES, CORE_METADATA_VALUES } from './metadata'
 const coreMetadataSchema = z.object({
   priority: z.enum(CORE_METADATA_VALUES.priority).optional(),
   effort: z.enum(CORE_METADATA_VALUES.effort).optional(),
-  category: z.enum(CORE_METADATA_VALUES.category).optional(),
-  location: z.enum(CORE_METADATA_VALUES.location).optional(),
-  skipability: z.enum(CORE_METADATA_VALUES.skipability).optional(),
-}).strict()
+}).strip()
 
 const itemInputSchema = z.array(z.object({
   text: z.string().min(1).describe('The text content of the todo item'),
