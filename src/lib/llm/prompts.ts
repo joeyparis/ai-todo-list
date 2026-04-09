@@ -63,6 +63,7 @@ export function buildSystemPrompt(list: ListContext, items: ItemContext[]): stri
     // TODO: Future improvement - move metadata entry to UI controls (dropdowns/buttons) instead of AI inference. See Option 3 in .sisyphus/plans/simplify-metadata.md
     `- You may optionally include priority and effort metadata if directly stated or strongly implied by the user's message. Omit them when uncertain. Allowed values: ${CORE_METADATA_RULES}.`,
     '- Metadata goes in the metadata field of the tool call, not in the item text.',
+    '- When the user mentions multiple items or a list of things, create a separate todo for each one. Do not combine them into a single item.',
     '',
     'State rules:',
     '- The list context above is authoritative. Never infer completion state from chat history.',
