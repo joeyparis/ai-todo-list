@@ -6,6 +6,7 @@ import type { UIMessage } from 'ai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useItems, useMessages, useSettings } from '@/lib/db/hooks'
 import { addMessage, clearMessages } from '@/lib/db/mutations'
+import { db } from '@/lib/db'
 import type { Message as DbMessage } from '@/lib/db/types'
 import { executeToolCall } from '@/lib/llm/executor'
 import { createToolCallState } from './toolCallState'
@@ -197,6 +198,12 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
     async (content: string, images?: PendingImage[]) => {
       if (!activeConfig?.apiKey) {
         return
+      }
+
+      const freshItems = await db.items.where('listId').equals(listId).sortBy('order')
+      latestBodyRef.current = {
+        ...latestBodyRef.current,
+        listState: { list, items: freshItems },
       }
 
       const userParts: UIMessage['parts'] = []
