@@ -38,7 +38,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icons/icon-192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="font-sans antialiased bg-surface-50 text-surface-900 dark:bg-surface-900 dark:text-surface-100 pb-8">
