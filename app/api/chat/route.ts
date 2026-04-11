@@ -96,6 +96,21 @@ export async function POST(req: NextRequest) {
       ignoreIncompleteToolCalls: true,
     })
 
+    // Convert data: URLs to binary so provider SDKs don't try to fetch them
+    for (const msg of coreMessages) {
+      if (msg.role === 'user' && Array.isArray(msg.content)) {
+        for (let i = 0; i < msg.content.length; i++) {
+          const part = msg.content[i]
+          if (part.type === 'file' && typeof part.data === 'string' && part.data.startsWith('data:')) {
+            const base64 = part.data.split(',')[1]
+            if (base64) {
+              msg.content[i] = { ...part, data: new Uint8Array(Buffer.from(base64, 'base64')) }
+            }
+          }
+        }
+      }
+    }
+
     const result = streamText({
       model: providerModel,
       system: buildSystemPrompt(listState?.list ?? { name: 'My List' }, listState?.items ?? []),
