@@ -111,10 +111,11 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
           return
         }
 
-        const verification = detectToolCallMismatch(parts as unknown[])
-        if (verification.mismatch && correctionAttemptRef.current === 0) {
-          setPendingCorrection(verification.claimedAction ?? 'performed action')
-        }
+        // TODO: re-enable when tuning correction prompts for GPT-5.4
+        // const verification = detectToolCallMismatch(parts as unknown[])
+        // if (verification.mismatch && correctionAttemptRef.current === 0) {
+        //   setPendingCorrection(verification.claimedAction ?? 'performed action')
+        // }
 
         const textContent = summarizeAssistantParts(parts)
 
