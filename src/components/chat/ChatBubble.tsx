@@ -1,9 +1,15 @@
 'use client'
 import React from 'react'
 
+export interface ChatImage {
+  url: string
+  filename?: string
+}
+
 interface ChatBubbleProps {
   messageRole: 'user' | 'assistant'
   content: string
+  images?: ChatImage[]
   isStreaming?: boolean
 }
 
@@ -105,8 +111,9 @@ function MarkdownRenderer({ content }: { content: string }) {
   )
 }
 
-export function ChatBubble({ messageRole, content, isStreaming }: ChatBubbleProps) {
+export function ChatBubble({ messageRole, content, images, isStreaming }: ChatBubbleProps) {
   const isUser = messageRole === 'user'
+  const hasImages = images && images.length > 0
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} mb-4 animate-slide-up`}>
       <div className="flex items-center gap-1 mb-1 px-1">
@@ -132,8 +139,22 @@ export function ChatBubble({ messageRole, content, isStreaming }: ChatBubbleProp
           }
         `}
       >
+        {hasImages && (
+          <div className={`flex gap-2 flex-wrap ${content && content !== '[image]' ? 'mb-2' : ''}`}>
+            {images.map(img => (
+              <img
+                key={img.url}
+                src={img.url}
+                alt={img.filename ?? 'Attached image'}
+                className="max-h-48 max-w-full rounded-lg object-contain"
+              />
+            ))}
+          </div>
+        )}
         {isUser ? (
-          <div className="whitespace-pre-wrap">{content}</div>
+          content && content !== '[image]' ? (
+            <div className="whitespace-pre-wrap">{content}</div>
+          ) : null
         ) : (
           <MarkdownRenderer content={content} />
         )}

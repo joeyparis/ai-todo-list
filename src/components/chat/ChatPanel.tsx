@@ -16,6 +16,7 @@ import {
 } from './persistence'
 import { detectToolCallMismatch, buildCorrectionPrompt } from '@/lib/llm/verification'
 import { ChatInput } from './ChatInput'
+import type { PendingImage } from './ChatInput'
 import { ChatMessages } from './ChatMessages'
 
 interface ChatPanelProps {
@@ -192,22 +193,38 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
   }, [pendingCorrection, status, chat])
 
   const handleSend = useCallback(
-    async (content: string) => {
+    async (content: string, images?: PendingImage[]) => {
       if (!activeConfig?.apiKey) {
         return
       }
 
-      const userParts: UIMessage['parts'] = [{ type: 'text', text: content }]
-      await addMessage(listId, 'user', content, JSON.stringify(userParts))
+      const userParts: UIMessage['parts'] = []
+      if (images && images.length > 0) {
+        for (const img of images) {
+          userParts.push({ type: 'file', mediaType: img.mediaType, url: img.url, filename: img.filename } as any)
+        }
+      }
+      if (content) {
+        userParts.push({ type: 'text', text: content })
+      }
+      await addMessage(listId, 'user', content || '[image]', JSON.stringify(userParts))
 
       try {
         correctionAttemptRef.current = 0
         toolCallStateRef.current.resetTurn()
 
+        const files = images?.map(img => ({
+          type: 'file' as const,
+          mediaType: img.mediaType,
+          url: img.url,
+          filename: img.filename,
+        }))
+
         await chat.sendMessage(
           {
-            text: content,
-          },
+            text: content || undefined,
+            files: files && files.length > 0 ? files : undefined,
+          } as any,
           {
             body: {
               ...latestBodyRef.current,
@@ -241,13 +258,17 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
             message.role === 'user' || message.role === 'assistant',
         )
         .map((message: any) => {
+          const images = (message.parts ?? [])
+            .filter((p: any) => p.type === 'file' && typeof p.mediaType === 'string' && p.mediaType.startsWith('image/'))
+            .map((p: any) => ({ url: p.url as string, filename: p.filename as string | undefined }))
           return {
             id: message.id,
             messageRole: message.role,
             content: summarizeMessageForTranscript(message),
+            images: images.length > 0 ? images : undefined,
           }
         })
-    .filter((msg: any) => (msg.content ?? '').trim() !== ''),
+    .filter((msg: any) => (msg.content ?? '').trim() !== '' || (msg.images && msg.images.length > 0)),
     [messages],
   )
 

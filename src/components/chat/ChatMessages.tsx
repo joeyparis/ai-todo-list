@@ -1,11 +1,13 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { ChatBubble } from './ChatBubble'
+import type { ChatImage } from './ChatBubble'
 
 interface Message {
   id: string
   messageRole: 'user' | 'assistant'
   content: string
+  images?: ChatImage[]
 }
 
 interface ChatMessagesProps {
@@ -63,6 +65,7 @@ export function ChatMessages({ messages, isLoading, isStreaming }: ChatMessagesP
           key={msg.id}
           messageRole={msg.messageRole}
           content={msg.content}
+          images={msg.images}
           isStreaming={isStreaming && msg.messageRole === 'assistant' && idx === messages.length - 1}
         />
       ))}

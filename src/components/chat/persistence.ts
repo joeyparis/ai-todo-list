@@ -137,8 +137,16 @@ export function summarizeMessageForTranscript(message: UIMessage): string {
     return summarizeAssistantParts(message.parts ?? [])
   }
 
-  return (message.parts ?? [])
+  const parts = message.parts ?? []
+  const text = parts
     .filter((part): part is Extract<UIMessage['parts'][number], { type: 'text' }> => part.type === 'text')
     .map(part => part.text)
     .join('')
+
+  if (text) return text
+
+  const hasFiles = parts.some(part => part.type === 'file')
+  if (hasFiles) return '[image]'
+
+  return ''
 }
