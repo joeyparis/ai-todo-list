@@ -8,15 +8,16 @@ import { saveProviderConfig, setActiveProvider } from '@/lib/db/mutations'
 import { useTheme } from '@/components/ThemeScript'
 
 const MODELS: Record<string, string[]> = {
-  openai: ['gpt-4o', 'gpt-4o-mini'],
+  openai: ['gpt-5.4', 'gpt-5.4-mini', 'gpt-5.4-nano'],
   anthropic: ['claude-sonnet-4-20250514', 'claude-haiku-4-20250414'],
   google: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite'],
   openrouter: ['openai/gpt-oss-120b:free', 'qwen/qwen3.6-plus-preview:free', 'meta-llama/llama-3.3-70b-instruct:free', 'qwen/qwen3-coder:free'],
 }
 
 const MODEL_DESCRIPTIONS: Record<string, string> = {
-  'gpt-4o': 'Most capable, best for complex tasks',
-  'gpt-4o-mini': 'Fast, cost-effective for everyday tasks',
+  'gpt-5.4': '1M context, best for complex agentic tasks',
+  'gpt-5.4-mini': '400K context, strong for coding and subagents',
+  'gpt-5.4-nano': '400K context, cheapest for simple high-volume tasks',
   'claude-sonnet-4-20250514': 'Excellent reasoning and coding capabilities',
   'claude-haiku-4-20250414': 'Lightning fast, great for quick responses',
   'gemini-2.5-flash': 'Fast and versatile for most tasks',

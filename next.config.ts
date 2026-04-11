@@ -9,6 +9,9 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(process.cwd()),
+  env: {
+    NEXT_PUBLIC_BUILD_TIME: new Date().toISOString(),
+  },
 }
 
 export default withSerwist(nextConfig)
