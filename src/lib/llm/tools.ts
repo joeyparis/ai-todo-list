@@ -60,6 +60,13 @@ export const todoTools = {
     }),
   }),
 
+  reorderItems: tool({
+    description: 'Reorder items in the list. Use when the user asks to sort, prioritize, or rearrange items. Accepts an array of item IDs in the desired order.',
+    inputSchema: z.object({
+      itemIds: z.array(z.string()).min(1).describe('Array of item IDs in the desired order'),
+    }),
+  }),
+
   addAndCompleteItems: tool({
     description: 'Add items to the list AND immediately mark them as completed. Use this ONLY when the user mentions tasks they have ALREADY done that are not currently on the list (e.g., "I already walked the dog", "Oh I also picked up the dry cleaning").',
     inputSchema: z.object({

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { db } from '@/lib/db'
 import { createList, addItems } from '@/lib/db/mutations'
+import type { Item } from '@/lib/db/types'
 import { executeToolCall } from './executor'
 
 let listId: string
@@ -76,6 +77,62 @@ describe('executeToolCall', () => {
       expect(result.success).toBe(true)
       const items = await db.items.where('listId').equals(listId).toArray()
       expect(items[0].completed).toBe(true)
+    })
+  })
+
+  describe('reorderItems', () => {
+    it('reorders existing items in the requested order', async () => {
+      const items = await addItems(listId, [
+        { text: 'First' },
+        { text: 'Second' },
+        { text: 'Third' },
+      ])
+
+      const result = await executeToolCall('reorderItems', {
+        itemIds: [items[2].id, items[0].id, items[1].id],
+      }, listId)
+
+      expect(result).toEqual({ success: true, notFound: [] })
+
+      const reordered = await db.items.where('listId').equals(listId).sortBy('order')
+      expect(reordered.map((item: Item) => item.id)).toEqual([items[2].id, items[0].id, items[1].id])
+    })
+
+    it('reorders owned items and reports missing IDs', async () => {
+      const items = await addItems(listId, [
+        { text: 'First' },
+        { text: 'Second' },
+        { text: 'Third' },
+      ])
+      const otherList = await createList('Other')
+      const otherItems = await addItems(otherList.id, [{ text: 'Other item' }])
+
+      const result = await executeToolCall('reorderItems', {
+        itemIds: [items[2].id, otherItems[0].id, items[1].id, 'fake-id-123', items[0].id],
+      }, listId)
+
+      expect(result).toEqual({ success: true, notFound: [otherItems[0].id, 'fake-id-123'] })
+
+      const reordered = await db.items.where('listId').equals(listId).sortBy('order')
+      expect(reordered.map((item: Item) => item.id)).toEqual([items[2].id, items[1].id, items[0].id])
+    })
+
+    it('returns all missing IDs without changing local order', async () => {
+      const items = await addItems(listId, [
+        { text: 'First' },
+        { text: 'Second' },
+      ])
+      const otherList = await createList('Other')
+      const otherItems = await addItems(otherList.id, [{ text: 'Other item' }])
+
+      const result = await executeToolCall('reorderItems', {
+        itemIds: [otherItems[0].id, 'fake-id-123'],
+      }, listId)
+
+      expect(result).toEqual({ success: true, notFound: [otherItems[0].id, 'fake-id-123'] })
+
+      const unchanged = await db.items.where('listId').equals(listId).sortBy('order')
+      expect(unchanged.map((item: Item) => item.id)).toEqual([items[0].id, items[1].id])
     })
   })
 
