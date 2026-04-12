@@ -49,6 +49,8 @@ interface TodoItemProps {
   selectable?: boolean
   selected?: boolean
   onToggleSelect?: () => void
+  onToggleComplete?: () => void
+  isCompleting?: boolean
   showDragHandle?: boolean
   isDragging?: boolean
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void
@@ -65,6 +67,8 @@ export function TodoItem({
   selectable, 
   selected, 
   onToggleSelect,
+  onToggleComplete,
+  isCompleting,
   showDragHandle,
   isDragging,
   onDragStart,
@@ -86,6 +90,10 @@ export function TodoItem({
   const handleToggle = async () => {
     if (selectable && onToggleSelect) {
       onToggleSelect()
+      return
+    }
+    if (onToggleComplete) {
+      onToggleComplete()
       return
     }
     if (item.completed) {
@@ -168,7 +176,7 @@ export function TodoItem({
 
       <div
         ref={itemRef}
-        className={`relative flex items-center gap-3 py-3 px-4 bg-white dark:bg-surface-900 transition-transform ${isSwiping ? '' : 'duration-200'} ${isCompleted ? 'opacity-60' : ''}`}
+        className={`relative flex items-center gap-3 py-3 px-4 bg-white dark:bg-surface-900 transition-transform ${isSwiping ? '' : 'duration-200'} ${isCompleted ? 'opacity-60' : ''} ${isCompleting ? 'animate-complete-out' : ''}`}
         style={{ transform: `translateX(${translateX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
