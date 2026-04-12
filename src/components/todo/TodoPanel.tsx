@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useItems } from '@/lib/db/hooks'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TodoItem } from './TodoItem'
 import { AddItemInput } from './AddItemInput'
 import { completeItems, deleteItems, reorderItems, uncompleteItems } from '@/lib/db/mutations'
@@ -15,6 +16,7 @@ interface TodoPanelProps {
 
 export function TodoPanel({ listId, goal }: TodoPanelProps) {
   const items = useItems(listId)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const [isSelectMode, setIsSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(true)
@@ -76,6 +78,11 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
       clearCompletionTimeout(item.id)
       removeCompletingId(item.id)
       void uncompleteItems([item.id])
+      return
+    }
+
+    if (prefersReducedMotion) {
+      void completeItems([item.id])
       return
     }
 
@@ -162,7 +169,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
     setDragOverId(null)
   }
 
-  const handleTouchStartDrag = (_e: React.TouchEvent, id: string) => {
+  const handleTouchStartDrag = (_e: React.TouchEvent<HTMLElement>, id: string) => {
     setTouchDragId(id)
     document.body.style.overflow = 'hidden'
   }
