@@ -102,6 +102,12 @@ describe('reorderItems schema', () => {
   it('rejects non-array', () => {
     expect(() => (todoTools.reorderItems.inputSchema as any).parse({ itemIds: 'notarray' })).toThrow()
   })
+
+  it('rejects duplicate IDs', () => {
+    expect(() => (todoTools.reorderItems.inputSchema as any).parse({ itemIds: ['id1', 'id1'] })).toThrow(
+      'itemIds must not contain duplicates'
+    )
+  })
 })
 
 describe('addAndCompleteItems schema', () => {

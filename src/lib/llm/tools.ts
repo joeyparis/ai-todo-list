@@ -12,6 +12,12 @@ const itemInputSchema = z.array(z.object({
   metadata: coreMetadataSchema.optional().describe(`Optional inferred metadata using only these keys and values: ${CORE_METADATA_RULES}`),
 }))
 
+const reorderItemIdsSchema = z.array(z.string())
+  .min(1)
+  .refine(itemIds => new Set(itemIds).size === itemIds.length, {
+    message: 'itemIds must not contain duplicates',
+  })
+
 export const todoTools = {
   addItems: tool({
     description: `Add one or more new todo items to the current list. Use this when the user describes tasks, activities, or things they need to do. Infer metadata from context when possible using only this core schema: ${CORE_METADATA_RULES}.`,
@@ -63,7 +69,7 @@ export const todoTools = {
   reorderItems: tool({
     description: 'Reorder items in the list. Use when the user asks to sort, prioritize, or rearrange items. Accepts an array of item IDs in the desired order.',
     inputSchema: z.object({
-      itemIds: z.array(z.string()).min(1).describe('Array of item IDs in the desired order'),
+      itemIds: reorderItemIdsSchema.describe('Array of unique item IDs in the desired order'),
     }),
   }),
 

@@ -134,6 +134,23 @@ describe('executeToolCall', () => {
       const unchanged = await db.items.where('listId').equals(listId).sortBy('order')
       expect(unchanged.map((item: Item) => item.id)).toEqual([items[0].id, items[1].id])
     })
+
+    it('rejects duplicate IDs without changing order', async () => {
+      const items = await addItems(listId, [
+        { text: 'First' },
+        { text: 'Second' },
+      ])
+
+      const result = await executeToolCall('reorderItems', {
+        itemIds: [items[1].id, items[1].id],
+      }, listId)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('itemIds must not contain duplicates')
+
+      const unchanged = await db.items.where('listId').equals(listId).sortBy('order')
+      expect(unchanged.map((item: Item) => item.id)).toEqual([items[0].id, items[1].id])
+    })
   })
 
   describe('validation', () => {
