@@ -50,7 +50,7 @@ export const todoTools = {
   }),
 
   updateItems: tool({
-    description: `Update metadata for multiple items at once. Use this when the user asks to reprioritize, recategorize, or review the entire list. Use only this core metadata schema: ${CORE_METADATA_RULES}.`,
+    description: `Update metadata for multiple items at once. Use this when the user asks to review the list or change metadata like priority or effort across multiple items. Use only this core metadata schema: ${CORE_METADATA_RULES}.`,
     inputSchema: z.object({
       updates: z.array(z.object({
         itemId: z.string().describe('The ID of the item to update'),
@@ -67,7 +67,7 @@ export const todoTools = {
   }),
 
   reorderItems: tool({
-    description: 'Reorder items in the list. Use when the user asks to sort, prioritize, or rearrange items. Accepts an array of item IDs in the desired order.',
+    description: 'Reorder items in the list. Use when the user asks to sort, reorder, or rearrange the visible order of items. Accepts an array of item IDs in the desired order.',
     inputSchema: z.object({
       itemIds: reorderItemIdsSchema.describe('Array of unique item IDs in the desired order'),
     }),
