@@ -83,6 +83,7 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
       provider: activeProvider,
       apiKey: activeConfig?.apiKey,
       model: activeConfig?.model,
+      inferMetadata: settings?.inferMetadata ?? false,
     },
   })
 
@@ -96,9 +97,10 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
         provider: activeProvider,
         apiKey: activeConfig?.apiKey,
         model: activeConfig?.model,
+        inferMetadata: settings?.inferMetadata ?? false,
       },
     }
-  }, [items, list, activeProvider, activeConfig])
+  }, [items, list, activeProvider, activeConfig, settings?.inferMetadata])
 
   const chat = useChat({
     messages: initialMessages,
@@ -243,7 +245,7 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
         console.error('[ChatPanel] sendMessage error:', err)
       }
     },
-    [chat, listId, activeConfig?.apiKey],
+    [chat, listId, activeConfig?.apiKey, list],
   )
 
   const handleClearChat = useCallback(async () => {

@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { messages, listState, settings } = body
+    const inferMetadata = settings?.inferMetadata ?? false
     const recentMessages = getRecentMessages(messages)
 
     // Validate required fields
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
 
     const result = streamText({
       model: providerModel,
-      system: buildSystemPrompt(listState?.list ?? { name: 'My List' }, listState?.items ?? []),
+      system: buildSystemPrompt(listState?.list ?? { name: 'My List' }, listState?.items ?? [], inferMetadata),
       messages: coreMessages,
       tools: todoTools,
     })

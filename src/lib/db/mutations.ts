@@ -96,6 +96,18 @@ export async function saveProviderConfig(provider: string, config: { apiKey: str
     id: 'settings',
     activeProvider: existing?.activeProvider ?? provider,
     providerConfigs,
+    inferMetadata: existing?.inferMetadata,
+  })
+}
+
+export async function saveInferMetadata(value: boolean): Promise<void> {
+  const existing = await db.settings.get('settings')
+
+  await db.settings.put({
+    id: 'settings',
+    activeProvider: existing?.activeProvider ?? 'openai',
+    providerConfigs: existing?.providerConfigs ?? {},
+    inferMetadata: value,
   })
 }
 

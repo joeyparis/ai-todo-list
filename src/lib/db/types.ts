@@ -36,4 +36,5 @@ export interface Settings {
   id: string  // always 'settings'
   activeProvider: string
   providerConfigs: Record<string, ProviderConfig>
+  inferMetadata?: boolean
 }

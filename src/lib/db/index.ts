@@ -52,6 +52,13 @@ export class TodoDatabase extends Dexie {
         }
       })
     })
+
+    this.version(5).stores({
+      lists: 'id, updatedAt',
+      items: 'id, listId, order',
+      messages: 'id, listId, createdAt',
+      settings: 'id',
+    })
   }
 }
 

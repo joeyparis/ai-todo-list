@@ -30,6 +30,7 @@ export interface ExportEnvelope {
     settings?: {
       activeProvider: string
       providerConfigs: Record<string, { apiKey: string; model: string }>
+      inferMetadata?: boolean
       theme?: 'light' | 'dark'
     }
   }
@@ -74,6 +75,7 @@ export const exportEnvelopeSchema = z.object({
             model: z.string(),
           })
         ),
+        inferMetadata: z.boolean().optional(),
         theme: z.enum(['light', 'dark']).optional(),
       })
       .optional(),

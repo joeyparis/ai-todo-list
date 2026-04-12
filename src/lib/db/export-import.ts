@@ -52,6 +52,7 @@ export async function exportData(options: ExportOptions): Promise<ExportEnvelope
       settings = {
         activeProvider: dbSettings.activeProvider,
         providerConfigs: dbSettings.providerConfigs,
+        ...(dbSettings.inferMetadata !== undefined ? { inferMetadata: dbSettings.inferMetadata } : {}),
         ...(theme !== undefined ? { theme } : {}),
       }
     }
