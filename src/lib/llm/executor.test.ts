@@ -20,7 +20,7 @@ describe('executeToolCall', () => {
     it('creates items in database', async () => {
       const result = await executeToolCall('addItems', {
         items: [
-          { text: 'Buy milk', metadata: { priority: 'high' } },
+          { text: 'Buy milk', category: 'Errands', metadata: { priority: 'high' } },
           { text: 'Buy eggs' },
         ],
       }, listId)
@@ -28,6 +28,39 @@ describe('executeToolCall', () => {
       expect(result.itemsAdded).toBe(2)
       const items = await db.items.where('listId').equals(listId).toArray()
       expect(items).toHaveLength(2)
+      expect(items.find(item => item.text === 'Buy milk')?.category).toBe('Errands')
+      expect(items.find(item => item.text === 'Buy eggs')?.category).toBeUndefined()
+    })
+  })
+
+  describe('updateItem', () => {
+    it('updates an item category', async () => {
+      const items = await addItems(listId, [{ text: 'Plan sprint' }])
+
+      const result = await executeToolCall('updateItem', {
+        itemId: items[0].id,
+        category: 'Work',
+      }, listId)
+
+      expect(result.success).toBe(true)
+      expect(result.itemsUpdated).toBe(1)
+
+      const updated = await db.items.get(items[0].id)
+      expect(updated?.category).toBe('Work')
+    })
+
+    it('normalizes whitespace category to undefined', async () => {
+      const items = await addItems(listId, [{ text: 'Plan sprint', category: 'Work' }])
+
+      const result = await executeToolCall('updateItem', {
+        itemId: items[0].id,
+        category: '   ',
+      }, listId)
+
+      expect(result.success).toBe(true)
+
+      const updated = await db.items.get(items[0].id)
+      expect(updated?.category).toBeUndefined()
     })
   })
 

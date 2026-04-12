@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { db } from './index'
 import {
-  createList, updateList, deleteList,
+  createList, deleteList,
   addItems, completeItems, uncompleteItems, updateItem, deleteItems,
   addMessage,
   saveProviderConfig, setActiveProvider,
@@ -45,13 +45,22 @@ describe('addItems', () => {
   it('adds items with metadata', async () => {
     const list = await createList('Test')
     const items = await addItems(list.id, [
-      { text: 'Buy milk', metadata: { priority: 'high' } },
+      { text: 'Buy milk', category: 'Errands', metadata: { priority: 'high' } },
       { text: 'Call dentist' },
     ])
     expect(items).toHaveLength(2)
     expect(items[0].text).toBe('Buy milk')
+    expect(items[0].category).toBe('Errands')
     expect(items[0].metadata.priority).toBe('high')
+    expect(items[1].category).toBeUndefined()
     expect(items[1].metadata).toEqual({})
+  })
+
+  it('normalizes whitespace category to undefined', async () => {
+    const list = await createList('Test')
+    const items = await addItems(list.id, [{ text: 'Call dentist', category: '   ' }])
+
+    expect(items[0].category).toBeUndefined()
   })
 
   it('adds items as completed when flag set', async () => {
@@ -91,6 +100,16 @@ describe('updateItem', () => {
     const updated = await db.items.get(items[0].id)
     expect(updated?.text).toBe('New')
     expect(updated?.metadata.priority).toBe('high')
+  })
+
+  it('normalizes updated whitespace category to undefined', async () => {
+    const list = await createList('Test')
+    const items = await addItems(list.id, [{ text: 'Old', category: 'Work' }])
+
+    await updateItem(items[0].id, { category: '   ' })
+
+    const updated = await db.items.get(items[0].id)
+    expect(updated?.category).toBeUndefined()
   })
 })
 

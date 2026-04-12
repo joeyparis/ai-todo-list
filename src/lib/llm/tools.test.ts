@@ -4,9 +4,10 @@ import { todoTools } from './tools'
 describe('addItems schema', () => {
   it('accepts valid input', () => {
     const result = (todoTools.addItems.inputSchema as any).parse({
-      items: [{ text: 'Buy milk', metadata: { priority: 'high' } }],
+      items: [{ text: 'Buy milk', category: 'Errands', metadata: { priority: 'high' } }],
     })
     expect(result.items).toHaveLength(1)
+    expect(result.items[0].category).toBe('Errands')
   })
 
   it('rejects empty items array', () => {
@@ -46,8 +47,9 @@ describe('completeItems schema', () => {
 
 describe('updateItem schema', () => {
   it('accepts partial update', () => {
-    const result = (todoTools.updateItem.inputSchema as any).parse({ itemId: 'abc', text: 'New text' })
+    const result = (todoTools.updateItem.inputSchema as any).parse({ itemId: 'abc', text: 'New text', category: 'Work' })
     expect(result.itemId).toBe('abc')
+    expect(result.category).toBe('Work')
   })
 
   it('rejects missing itemId', () => {

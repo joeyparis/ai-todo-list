@@ -52,7 +52,11 @@ export async function executeToolCall(
     switch (toolName) {
       case 'addItems': {
         const parsed = (todoTools.addItems as any).inputSchema.parse(args)
-        const cleanedItems = parsed.items.map((item: any) => ({ ...item, text: cleanItemText(item.text) }))
+        const cleanedItems = parsed.items.map((item: any) => ({
+          ...item,
+          text: cleanItemText(item.text),
+          category: item.category,
+        }))
         await addItemsMutation(listId, cleanedItems)
         return { success: true, itemsAdded: cleanedItems.length }
       }
@@ -82,9 +86,12 @@ export async function executeToolCall(
           return { success: false, error: 'Item not found', notFound: [parsed.itemId] }
         }
 
-        const fields: { text?: string; metadata?: Record<string, unknown> } = {}
+        const fields: { text?: string; category?: string; metadata?: Record<string, unknown> } = {}
         if (parsed.text !== undefined) {
           fields.text = cleanItemText(parsed.text)
+        }
+        if (parsed.category !== undefined) {
+          fields.category = parsed.category
         }
         if (parsed.metadata !== undefined) {
           fields.metadata = parsed.metadata

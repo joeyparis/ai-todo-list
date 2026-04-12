@@ -9,6 +9,7 @@ const coreMetadataSchema = z.object({
 
 const itemInputSchema = z.array(z.object({
   text: z.string().min(1).describe('The text content of the todo item'),
+  category: z.string().max(100).optional().describe('Optional category label for the item'),
   metadata: coreMetadataSchema.optional().describe(`Optional inferred metadata using only these keys and values: ${CORE_METADATA_RULES}`),
 }))
 
@@ -45,6 +46,7 @@ export const todoTools = {
     inputSchema: z.object({
       itemId: z.string().describe('The ID of the item to update'),
       text: z.string().min(1).optional().describe('New text for the item'),
+      category: z.string().max(100).optional().describe('Updated category for the item'),
       metadata: coreMetadataSchema.optional().describe(`Updated metadata for the item. Allowed keys/values: ${CORE_METADATA_RULES}`),
     }),
   }),
