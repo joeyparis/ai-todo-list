@@ -64,6 +64,29 @@ describe('executeToolCall', () => {
     })
   })
 
+  describe('updateItems', () => {
+    it('updates item categories in a batch', async () => {
+      const items = await addItems(listId, [
+        { text: 'Plan sprint' },
+        { text: 'Write retro' },
+      ])
+
+      const result = await executeToolCall('updateItems', {
+        updates: [
+          { itemId: items[0].id, category: 'Work' },
+          { itemId: items[1].id, category: 'Meetings' },
+        ],
+      }, listId)
+
+      expect(result.success).toBe(true)
+      expect(result.itemsUpdated).toBe(2)
+
+      const updated = await db.items.where('listId').equals(listId).sortBy('order')
+      expect(updated[0].category).toBe('Work')
+      expect(updated[1].category).toBe('Meetings')
+    })
+  })
+
   describe('completeItems', () => {
     it('completes existing items', async () => {
       const items = await addItems(listId, [{ text: 'Todo' }])

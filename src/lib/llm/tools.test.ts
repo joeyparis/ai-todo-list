@@ -112,6 +112,22 @@ describe('reorderItems schema', () => {
   })
 })
 
+describe('updateItems schema', () => {
+  it('accepts category-only batch updates', () => {
+    const result = (todoTools.updateItems.inputSchema as any).parse({
+      updates: [{ itemId: 'abc', category: 'Work' }],
+    })
+
+    expect(result.updates[0].category).toBe('Work')
+  })
+
+  it('rejects updates without category or metadata', () => {
+    expect(() => (todoTools.updateItems.inputSchema as any).parse({
+      updates: [{ itemId: 'abc' }],
+    })).toThrow()
+  })
+})
+
 describe('addAndCompleteItems schema', () => {
   it('accepts valid input', () => {
     const result = (todoTools.addAndCompleteItems.inputSchema as any).parse({

@@ -111,7 +111,10 @@ export async function executeToolCall(
             missing.push(update.itemId)
             continue
           }
-          await updateItemMutation(update.itemId, { metadata: update.metadata })
+          await updateItemMutation(update.itemId, {
+            ...(update.category !== undefined ? { category: update.category } : {}),
+            ...(update.metadata !== undefined ? { metadata: update.metadata } : {}),
+          })
           updatedCount++
         }
         return { success: true, itemsUpdated: updatedCount, notFound: missing }
