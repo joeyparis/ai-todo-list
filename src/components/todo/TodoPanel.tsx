@@ -1,9 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useItems } from '@/lib/db/hooks'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TodoItem } from './TodoItem'
 import { AddItemInput } from './AddItemInput'
-import { completeItems, deleteItems, reorderItems } from '@/lib/db/mutations'
+import { completeItems, deleteItems, reorderItems, uncompleteItems } from '@/lib/db/mutations'
+import type { Item } from '@/lib/db/types'
+
+const COMPLETE_ANIMATION_MS = 250
 
 interface TodoPanelProps {
   listId: string
@@ -12,15 +16,90 @@ interface TodoPanelProps {
 
 export function TodoPanel({ listId, goal }: TodoPanelProps) {
   const items = useItems(listId)
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const [isSelectMode, setIsSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(true)
+  const [completingIds, setCompletingIds] = useState<Set<string>>(new Set())
   
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
 
   const [touchDragId, setTouchDragId] = useState<string | null>(null)
   const [touchDragOverId, setTouchDragOverId] = useState<string | null>(null)
+  const completionTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  const completingIdsRef = useRef<Set<string>>(new Set())
+
+  useEffect(() => {
+    const completionTimeouts = completionTimeoutsRef.current
+
+    return () => {
+      completionTimeouts.forEach((timeoutId: ReturnType<typeof setTimeout>) => {
+        clearTimeout(timeoutId)
+      })
+      completionTimeouts.clear()
+    }
+  }, [])
+
+  const removeCompletingId = (id: string) => {
+    setCompletingIds((prev: Set<string>) => {
+      if (!prev.has(id)) {
+        return prev
+      }
+
+      const next = new Set(prev)
+      next.delete(id)
+      completingIdsRef.current = next
+      return next
+    })
+  }
+
+  const clearCompletionTimeout = (id: string) => {
+    const timeoutId = completionTimeoutsRef.current.get(id)
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      completionTimeoutsRef.current.delete(id)
+    }
+  }
+
+  const scheduleCompletionCleanup = (id: string) => {
+    clearCompletionTimeout(id)
+
+    const timeoutId = setTimeout(() => {
+      completionTimeoutsRef.current.delete(id)
+      removeCompletingId(id)
+    }, COMPLETE_ANIMATION_MS)
+
+    completionTimeoutsRef.current.set(id, timeoutId)
+  }
+
+  const handleItemToggle = (item: Item) => {
+    if (item.completed || completingIdsRef.current.has(item.id)) {
+      clearCompletionTimeout(item.id)
+      removeCompletingId(item.id)
+      void uncompleteItems([item.id])
+      return
+    }
+
+    if (prefersReducedMotion) {
+      void completeItems([item.id])
+      return
+    }
+
+    setCompletingIds((prev: Set<string>) => {
+      if (prev.has(item.id)) {
+        return prev
+      }
+
+      const next = new Set(prev)
+      next.add(item.id)
+      completingIdsRef.current = next
+      return next
+    })
+
+    void completeItems([item.id])
+    scheduleCompletionCleanup(item.id)
+  }
 
   const toggleSelectMode = () => {
     setIsSelectMode(!isSelectMode)
@@ -90,7 +169,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
     setDragOverId(null)
   }
 
-  const handleTouchStartDrag = (_e: React.TouchEvent, id: string) => {
+  const handleTouchStartDrag = (_e: React.TouchEvent<HTMLElement>, id: string) => {
     setTouchDragId(id)
     document.body.style.overflow = 'hidden'
   }
@@ -143,15 +222,15 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
     )
   }
 
-  const activeItems = items.filter(item => !item.completed)
-  const completedItems = items.filter(item => item.completed)
+  const activeItems = items.filter(item => !item.completed || completingIds.has(item.id))
+  const completedItems = items.filter(item => item.completed && !completingIds.has(item.id))
 
   return (
     <div className="flex flex-col h-full relative bg-white dark:bg-surface-950" data-testid="todo-panel">
       <div className="flex items-center justify-between px-4 py-2 border-b border-surface-100 dark:border-surface-800 bg-surface-50 dark:bg-surface-900">
         {goal ? (
           <div className="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
-            <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" strokeWidth={2} />
               <circle cx="12" cy="12" r="6" strokeWidth={2} />
               <circle cx="12" cy="12" r="2" strokeWidth={2} />
@@ -163,6 +242,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
         )}
         {items.length > 0 && (
           <button
+            type="button"
             onClick={toggleSelectMode}
             className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
             data-testid="bulk-select-btn"
@@ -174,7 +254,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
 
       {items.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-          <svg className="w-16 h-16 text-primary-200 dark:text-primary-900 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-16 h-16 text-primary-200 dark:text-primary-900 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-surface-500 dark:text-surface-400 text-sm">
@@ -198,6 +278,8 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
                 selectable={isSelectMode}
                 selected={selectedIds.has(item.id)}
                 onToggleSelect={() => toggleSelection(item.id)}
+                onToggleComplete={() => handleItemToggle(item)}
+                isCompleting={completingIds.has(item.id)}
                 showDragHandle={!isSelectMode}
                 isDragging={draggedId === item.id || touchDragId === item.id}
                 onDragStart={(e) => handleDragStart(e, item.id)}
@@ -212,11 +294,13 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
           {completedItems.length > 0 && (
             <div className="mt-4">
               <button
+                type="button"
                 onClick={() => setIsCompletedExpanded(!isCompletedExpanded)}
                 className="flex items-center gap-2 px-4 py-2 w-full text-left text-sm font-medium text-surface-500 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-900 transition-colors"
                 data-testid="completed-section"
               >
                 <svg
+                  aria-hidden="true"
                   className={`w-4 h-4 transition-transform duration-200 ${isCompletedExpanded ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
@@ -236,6 +320,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
                       selectable={isSelectMode}
                       selected={selectedIds.has(item.id)}
                       onToggleSelect={() => toggleSelection(item.id)}
+                      onToggleComplete={() => handleItemToggle(item)}
                     />
                   ))}
                 </div>
@@ -253,12 +338,14 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
           <span className="text-sm font-medium px-2">{selectedIds.size} selected</span>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={handleBulkComplete}
               className="px-3 py-1.5 text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors"
             >
               Complete All
             </button>
             <button
+              type="button"
               onClick={handleBulkDelete}
               className="px-3 py-1.5 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
             >

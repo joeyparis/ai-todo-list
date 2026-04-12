@@ -107,6 +107,10 @@ const config: Config = {
           '0%': { transform: 'translateX(0)', opacity: '1' },
           '100%': { transform: 'translateX(100%)', opacity: '0' },
         },
+        'complete-out': {
+          '0%': { transform: 'translateY(0)', opacity: '1' },
+          '100%': { transform: 'translateY(8px)', opacity: '0' },
+        },
       },
       animation: {
         'slide-in': 'slide-in-right 0.2s ease-out',
@@ -118,6 +122,7 @@ const config: Config = {
         'check-bounce': 'check-bounce 0.3s ease-out',
         'shimmer': 'shimmer 2s linear infinite',
         'swipe-complete': 'swipe-complete 0.3s ease-out forwards',
+        'complete-out': 'complete-out 0.25s ease-out forwards',
       },
       transitionTimingFunction: {
         'bounce-in': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',

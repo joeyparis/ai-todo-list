@@ -145,3 +145,9 @@
     -webkit-touch-callout: none;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-complete-out {
+    animation: none;
+  }
+}

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Item } from '@/lib/db/types'
 import { completeItems, uncompleteItems, updateItem, deleteItems } from '@/lib/db/mutations'
 
@@ -28,7 +28,7 @@ function MetadataBadges({ metadata }: MetadataBadgesProps) {
         if (key === 'effort') {
           return (
             <span key={key} className="badge badge-default">
-              <svg className="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg aria-hidden="true" className="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               {strValue}
             </span>
           )
@@ -49,6 +49,8 @@ interface TodoItemProps {
   selectable?: boolean
   selected?: boolean
   onToggleSelect?: () => void
+  onToggleComplete?: () => void
+  isCompleting?: boolean
   showDragHandle?: boolean
   isDragging?: boolean
   onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void
@@ -57,7 +59,7 @@ interface TodoItemProps {
   onDragEnter?: (e: React.DragEvent<HTMLDivElement>) => void
   onDragLeave?: (e: React.DragEvent<HTMLDivElement>) => void
   onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void
-  onTouchStartDrag?: (e: React.TouchEvent<HTMLDivElement>) => void
+  onTouchStartDrag?: (e: React.TouchEvent<HTMLElement>) => void
 }
 
 export function TodoItem({ 
@@ -65,6 +67,8 @@ export function TodoItem({
   selectable, 
   selected, 
   onToggleSelect,
+  onToggleComplete,
+  isCompleting,
   showDragHandle,
   isDragging,
   onDragStart,
@@ -82,10 +86,21 @@ export function TodoItem({
   const [isSwiping, setIsSwiping] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const itemRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus()
+    }
+  }, [isEditing])
 
   const handleToggle = async () => {
     if (selectable && onToggleSelect) {
       onToggleSelect()
+      return
+    }
+    if (onToggleComplete) {
+      onToggleComplete()
       return
     }
     if (item.completed) {
@@ -120,7 +135,11 @@ export function TodoItem({
 
     if (translateX > threshold) {
       if (!item.completed) {
-        await completeItems([item.id])
+        if (onToggleComplete) {
+          onToggleComplete()
+        } else {
+          await completeItems([item.id])
+        }
       }
       setTranslateX(0)
     } else if (translateX < -threshold) {
@@ -150,9 +169,10 @@ export function TodoItem({
   const isCompleted = item.completed && !selectable
 
   return (
-    <div 
+    <section 
       className={`relative overflow-hidden border-b border-surface-100 dark:border-surface-800 animate-slide-in ${isDragging ? 'opacity-50 shadow-lg' : ''}`} 
       data-testid="todo-item"
+      aria-label={item.text}
       draggable={showDragHandle}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -168,7 +188,7 @@ export function TodoItem({
 
       <div
         ref={itemRef}
-        className={`relative flex items-center gap-3 py-3 px-4 bg-white dark:bg-surface-900 transition-transform ${isSwiping ? '' : 'duration-200'} ${isCompleted ? 'opacity-60' : ''}`}
+        className={`relative flex items-center gap-3 py-3 px-4 bg-white dark:bg-surface-900 transition-transform ${isSwiping ? '' : 'duration-200'} ${isCompleted ? 'opacity-60' : ''} ${isCompleting ? 'animate-complete-out' : ''}`}
         style={{ transform: `translateX(${translateX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -191,7 +211,7 @@ export function TodoItem({
           data-testid="todo-checkbox"
         >
           {(selectable ? selected : item.completed) && (
-            <svg className="w-3 h-3 text-white animate-check-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg aria-hidden="true" className="w-3 h-3 text-white animate-check-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           )}
@@ -200,45 +220,44 @@ export function TodoItem({
         <div className="flex-1 min-w-0">
           {isEditing ? (
             <input
+              ref={inputRef}
               type="text"
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
               onBlur={handleEditSave}
               onKeyDown={handleEditKeyDown}
               className="input-base w-full text-base"
-              autoFocus
             />
           ) : (
-            <p
-              className={`text-base select-none-touch cursor-text ${isCompleted ? 'line-through text-surface-400 dark:text-surface-500' : 'text-surface-900 dark:text-surface-50'}`}
+            <button
+              type="button"
+              className={`w-full text-left text-base select-none-touch cursor-text ${isCompleted ? 'line-through text-surface-400 dark:text-surface-500' : 'text-surface-900 dark:text-surface-50'}`}
               onClick={() => !selectable && setIsEditing(true)}
               onKeyDown={e => { if (!selectable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setIsEditing(true) } }}
-              role="button"
               tabIndex={selectable ? -1 : 0}
               aria-label={`Edit "${item.text}"`}
               data-testid="todo-text"
             >
               {item.text}
-            </p>
+            </button>
           )}
           <MetadataBadges metadata={item.metadata} />
         </div>
 
         {showDragHandle && (
-          <div 
+          <button
+            type="button"
             data-drag-handle
-            role="button"
             aria-label="Reorder item"
-            tabIndex={0}
             className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-surface-400 cursor-grab active:cursor-grabbing touch-none"
             onTouchStart={onTouchStartDrag}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
             </svg>
-          </div>
+          </button>
         )}
       </div>
-    </div>
+    </section>
   )
 }
