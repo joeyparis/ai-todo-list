@@ -1,6 +1,10 @@
 import { db } from './index'
 import type { List, Item, Message, Settings } from './types'
 
+function normalizeCategory(category?: string): string | undefined {
+  return category?.trim() || undefined
+}
+
 export async function createList(name: string, goal?: string): Promise<List> {
   const list: List = {
     id: crypto.randomUUID(),
@@ -27,7 +31,7 @@ export async function deleteList(id: string): Promise<void> {
 
 export async function addItems(
   listId: string,
-  items: Array<{ text: string; metadata?: Record<string, unknown>; completed?: boolean }>
+  items: Array<{ text: string; category?: string; metadata?: Record<string, unknown>; completed?: boolean }>
 ): Promise<Item[]> {
   const existingCount = await db.items.where('listId').equals(listId).count()
   const now = new Date()
@@ -37,6 +41,7 @@ export async function addItems(
     text: item.text,
     completed: item.completed ?? false,
     completedAt: item.completed ? now : undefined,
+    category: normalizeCategory(item.category),
     metadata: item.metadata ?? {},
     createdAt: now,
     updatedAt: now,
@@ -57,8 +62,12 @@ export async function uncompleteItems(ids: string[]): Promise<void> {
   await db.items.bulkUpdate(ids.map(id => ({ key: id, changes: { completed: false, completedAt: undefined, updatedAt: now } })))
 }
 
-export async function updateItem(id: string, fields: Partial<Pick<Item, 'text' | 'metadata'>>): Promise<void> {
-  await db.items.update(id, { ...fields, updatedAt: new Date() })
+export async function updateItem(id: string, fields: Partial<Pick<Item, 'text' | 'category' | 'metadata'>>): Promise<void> {
+  await db.items.update(id, {
+    ...fields,
+    ...(fields.category !== undefined ? { category: normalizeCategory(fields.category) } : {}),
+    updatedAt: new Date(),
+  })
 }
 
 export async function deleteItems(ids: string[]): Promise<void> {
@@ -118,7 +127,7 @@ export async function setActiveProvider(provider: string): Promise<void> {
   }
 }
 
-export async function reorderItems(listId: string, orderedIds: string[]): Promise<void> {
+export async function reorderItems(_listId: string, orderedIds: string[]): Promise<void> {
   const now = new Date()
   await db.items.bulkUpdate(
     orderedIds.map((id, index) => ({ key: id, changes: { order: index, updatedAt: now } }))

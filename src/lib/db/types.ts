@@ -12,6 +12,7 @@ export interface Item {
   text: string
   completed: boolean
   completedAt?: Date
+  category?: string
   metadata: Record<string, unknown>
   createdAt: Date
   updatedAt: Date

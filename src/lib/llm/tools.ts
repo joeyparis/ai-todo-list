@@ -9,6 +9,7 @@ const coreMetadataSchema = z.object({
 
 const itemInputSchema = z.array(z.object({
   text: z.string().min(1).describe('The text content of the todo item'),
+  category: z.string().max(100).optional().describe('Optional category label for the item'),
   metadata: coreMetadataSchema.optional().describe(`Optional inferred metadata using only these keys and values: ${CORE_METADATA_RULES}`),
 }))
 
@@ -17,6 +18,15 @@ const reorderItemIdsSchema = z.array(z.string())
   .refine(itemIds => new Set(itemIds).size === itemIds.length, {
     message: 'itemIds must not contain duplicates',
   })
+
+const itemUpdateSchema = z.object({
+  itemId: z.string().describe('The ID of the item to update'),
+  category: z.string().max(100).optional().describe('Updated category for the item'),
+  metadata: coreMetadataSchema.optional().describe(`Updated metadata for the item. Allowed keys/values: ${CORE_METADATA_RULES}`),
+}).refine(
+  (value) => value.category !== undefined || value.metadata !== undefined,
+  { message: 'Provide category or metadata when updating items' }
+)
 
 export const todoTools = {
   addItems: tool({
@@ -45,17 +55,15 @@ export const todoTools = {
     inputSchema: z.object({
       itemId: z.string().describe('The ID of the item to update'),
       text: z.string().min(1).optional().describe('New text for the item'),
+      category: z.string().max(100).optional().describe('Updated category for the item'),
       metadata: coreMetadataSchema.optional().describe(`Updated metadata for the item. Allowed keys/values: ${CORE_METADATA_RULES}`),
     }),
   }),
 
   updateItems: tool({
-    description: `Update metadata for multiple items at once. Use this when the user asks to review the list or change metadata like priority or effort across multiple items. Use only this core metadata schema: ${CORE_METADATA_RULES}.`,
+    description: `Update category and/or metadata for multiple items at once. Use this when the user asks to reprioritize, recategorize, or review the entire list. Use only this core metadata schema: ${CORE_METADATA_RULES}.`,
     inputSchema: z.object({
-      updates: z.array(z.object({
-        itemId: z.string().describe('The ID of the item to update'),
-        metadata: coreMetadataSchema.describe(`Updated metadata for the item. Allowed keys/values: ${CORE_METADATA_RULES}`),
-      })).min(1).describe('Array of items to update with new metadata'),
+      updates: z.array(itemUpdateSchema).min(1).describe('Array of items to update with new category and/or metadata'),
     }),
   }),
 

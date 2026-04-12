@@ -6,7 +6,7 @@ describe('serializeListState', () => {
     const result = serializeListState(
       { name: 'Errands', goal: 'By Sunday' } as any,
       [
-         { id: 'a1', text: 'Buy milk', completed: false, metadata: { priority: 'high' } },
+        { id: 'a1', text: 'Buy milk', completed: false, category: 'Produce', metadata: { priority: 'high' } },
         { id: 'b2', text: 'Walk dog', completed: true, metadata: {} },
       ] as any,
     )
@@ -15,6 +15,7 @@ describe('serializeListState', () => {
     expect(result).toContain('Buy milk')
     expect(result).toContain('a1')
     expect(result).toContain('[done]')
+    expect(result).toContain('category: Produce')
     expect(result).toContain('priority')
   })
 
@@ -56,6 +57,12 @@ describe('buildSystemPrompt', () => {
   it('contains metadata guidance', () => {
     const prompt = buildSystemPrompt(list, items)
     expect(prompt.toLowerCase()).toContain('metadata')
+  })
+
+  it('contains category guidance', () => {
+    const prompt = buildSystemPrompt(list, items)
+    expect(prompt.toLowerCase()).toContain('category field')
+    expect(prompt.toLowerCase()).toContain('updateitems')
   })
 
   it('contains source-of-truth rule', () => {
