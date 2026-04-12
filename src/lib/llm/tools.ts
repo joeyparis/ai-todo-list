@@ -12,6 +12,12 @@ const itemInputSchema = z.array(z.object({
   metadata: coreMetadataSchema.optional().describe(`Optional inferred metadata using only these keys and values: ${CORE_METADATA_RULES}`),
 }))
 
+const reorderItemIdsSchema = z.array(z.string())
+  .min(1)
+  .refine(itemIds => new Set(itemIds).size === itemIds.length, {
+    message: 'itemIds must not contain duplicates',
+  })
+
 export const todoTools = {
   addItems: tool({
     description: `Add one or more new todo items to the current list. Use this when the user describes tasks, activities, or things they need to do. Infer metadata from context when possible using only this core schema: ${CORE_METADATA_RULES}.`,
@@ -44,7 +50,7 @@ export const todoTools = {
   }),
 
   updateItems: tool({
-    description: `Update metadata for multiple items at once. Use this when the user asks to reprioritize, recategorize, or review the entire list. Use only this core metadata schema: ${CORE_METADATA_RULES}.`,
+    description: `Update metadata for multiple items at once. Use this when the user asks to review the list or change metadata like priority or effort across multiple items. Use only this core metadata schema: ${CORE_METADATA_RULES}.`,
     inputSchema: z.object({
       updates: z.array(z.object({
         itemId: z.string().describe('The ID of the item to update'),
@@ -57,6 +63,13 @@ export const todoTools = {
     description: 'Permanently remove one or more items from the list. Use this when the user explicitly asks to delete, remove, or cancel items (not complete them).',
     inputSchema: z.object({
       itemIds: z.array(z.string()).min(1).describe('Array of item IDs to delete'),
+    }),
+  }),
+
+  reorderItems: tool({
+    description: 'Reorder items in the list. Use when the user asks to sort, reorder, or rearrange the visible order of items. Accepts an array of item IDs in the desired order.',
+    inputSchema: z.object({
+      itemIds: reorderItemIdsSchema.describe('Array of unique item IDs in the desired order'),
     }),
   }),
 

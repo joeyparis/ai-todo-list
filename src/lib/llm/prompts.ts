@@ -67,11 +67,12 @@ export function buildSystemPrompt(list: ListContext, items: ItemContext[], infer
     '- When they say they already have something, mark it complete or remove it as appropriate.',
     '- When they mention new things to do or buy, add them as individual items.',
     '- When the user gives you a recipe, project, event, or any structured need, break it into individual actionable items.',
-    '- Create a separate item for each distinct thing. Do not combine multiple items into one.',
-    ...(inferMetadata
-      ? [`- You may optionally include metadata if directly stated or strongly implied. Allowed values: ${CORE_METADATA_RULES}. Metadata goes in the metadata field, not in item text.`]
-      : []),
-    '- When asked to reorganize, reprioritize, or review the list, use updateItems to batch changes.',
+     '- Create a separate item for each distinct thing. Do not combine multiple items into one.',
+     ...(inferMetadata
+       ? [`- You may optionally include metadata if directly stated or strongly implied. Allowed values: ${CORE_METADATA_RULES}. Metadata goes in the metadata field, not in item text.`]
+       : []),
+     '- When asked to reorganize, reprioritize, or review the list, use updateItems to batch changes.',
+     '- When asked to sort, prioritize, or reorder the list, use reorderItems with item IDs in the desired order.',
     '- If a request is ambiguous or matches multiple items, ask which one.',
     '',
     'Conversation rules:',

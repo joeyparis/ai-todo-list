@@ -6,7 +6,9 @@ import {
   uncompleteItems as uncompleteItemsMutation,
   updateItem as updateItemMutation,
   deleteItems as deleteItemsMutation,
+  reorderItems as reorderItemsMutation,
 } from '@/lib/db/mutations'
+import type { Item } from '@/lib/db/types'
 import { todoTools } from './tools'
 
 export interface ToolResult {
@@ -35,7 +37,7 @@ function getErrorMessage(err: unknown): string {
 
 async function splitExistingAndMissingIds(itemIds: string[], listId: string): Promise<{ existingIds: string[]; missingIds: string[] }> {
   const existing = await db.items.where('id').anyOf(itemIds).toArray()
-  const existingIdSet = new Set(existing.filter(item => item.listId === listId).map(item => item.id))
+  const existingIdSet = new Set(existing.filter((item: Item) => item.listId === listId).map((item: Item) => item.id))
   const existingIds = itemIds.filter(id => existingIdSet.has(id))
   const missingIds = itemIds.filter(id => !existingIdSet.has(id))
   return { existingIds, missingIds }
@@ -115,6 +117,15 @@ export async function executeToolCall(
           await deleteItemsMutation(existingIds)
         }
         return { success: true, itemsDeleted: existingIds.length, notFound: missingIds }
+      }
+
+      case 'reorderItems': {
+        const parsed = (todoTools.reorderItems as any).inputSchema.parse(args)
+        const { existingIds, missingIds } = await splitExistingAndMissingIds(parsed.itemIds, listId)
+        if (existingIds.length > 0) {
+          await reorderItemsMutation(listId, existingIds)
+        }
+        return { success: true, notFound: missingIds }
       }
 
       case 'addAndCompleteItems': {

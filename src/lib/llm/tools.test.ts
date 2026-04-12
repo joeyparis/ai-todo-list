@@ -79,6 +79,37 @@ describe('updateItem schema', () => {
   })
 })
 
+describe('reorderItems schema', () => {
+  it('accepts valid input with multiple IDs', () => {
+    const result = (todoTools.reorderItems.inputSchema as any).parse({
+      itemIds: ['id1', 'id2'],
+    })
+    expect(result.itemIds).toHaveLength(2)
+    expect(result.itemIds).toEqual(['id1', 'id2'])
+  })
+
+  it('accepts valid input with single ID', () => {
+    const result = (todoTools.reorderItems.inputSchema as any).parse({
+      itemIds: ['id1'],
+    })
+    expect(result.itemIds).toHaveLength(1)
+  })
+
+  it('rejects empty array', () => {
+    expect(() => (todoTools.reorderItems.inputSchema as any).parse({ itemIds: [] })).toThrow()
+  })
+
+  it('rejects non-array', () => {
+    expect(() => (todoTools.reorderItems.inputSchema as any).parse({ itemIds: 'notarray' })).toThrow()
+  })
+
+  it('rejects duplicate IDs', () => {
+    expect(() => (todoTools.reorderItems.inputSchema as any).parse({ itemIds: ['id1', 'id1'] })).toThrow(
+      'itemIds must not contain duplicates'
+    )
+  })
+})
+
 describe('addAndCompleteItems schema', () => {
   it('accepts valid input', () => {
     const result = (todoTools.addAndCompleteItems.inputSchema as any).parse({
