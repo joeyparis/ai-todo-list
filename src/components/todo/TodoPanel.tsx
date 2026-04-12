@@ -149,7 +149,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
     setDragOverId(null)
     if (!draggedId || draggedId === targetId || !items) return
 
-    const activeItems = items.filter(item => !item.completed)
+    const activeItems = items.filter(item => !item.completed || completingIds.has(item.id))
     const draggedIndex = activeItems.findIndex(i => i.id === draggedId)
     const targetIndex = activeItems.findIndex(i => i.id === targetId)
     
@@ -195,7 +195,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
       return
     }
 
-    const activeItems = items.filter(item => !item.completed)
+    const activeItems = items.filter(item => !item.completed || completingIds.has(item.id))
     const draggedIndex = activeItems.findIndex(i => i.id === touchDragId)
     const targetIndex = activeItems.findIndex(i => i.id === touchDragOverId)
     
@@ -224,6 +224,45 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
 
   const activeItems = items.filter(item => !item.completed || completingIds.has(item.id))
   const completedItems = items.filter(item => item.completed && !completingIds.has(item.id))
+  const uncategorizedActiveItems = activeItems.filter(item => !item.category?.trim())
+  const categorizedActiveItems = activeItems.reduce((groups, item) => {
+    const category = item.category?.trim()
+
+    if (!category) return groups
+
+    const group = groups.get(category)
+    if (group) {
+      group.push(item)
+    } else {
+      groups.set(category, [item])
+    }
+
+    return groups
+  }, new Map<string, typeof activeItems>())
+
+  const renderActiveItem = (item: (typeof activeItems)[number]) => (
+    <div
+      key={item.id}
+      data-id={item.id}
+      className={dragOverId === item.id || touchDragOverId === item.id ? 'border-t-2 border-primary-500' : ''}
+    >
+      <TodoItem
+        item={item}
+        selectable={isSelectMode}
+        selected={selectedIds.has(item.id)}
+        onToggleSelect={() => toggleSelection(item.id)}
+        onToggleComplete={() => handleItemToggle(item)}
+        isCompleting={completingIds.has(item.id)}
+        showDragHandle={!isSelectMode}
+        isDragging={draggedId === item.id || touchDragId === item.id}
+        onDragStart={(e) => handleDragStart(e, item.id)}
+        onDragOver={(e) => handleDragOver(e, item.id)}
+        onDrop={(e) => handleDrop(e, item.id)}
+        onDragEnd={handleDragEnd}
+        onTouchStartDrag={(e) => handleTouchStartDrag(e, item.id)}
+      />
+    </div>
+  )
 
   return (
     <div className="flex flex-col h-full relative bg-white dark:bg-surface-950" data-testid="todo-panel">
@@ -267,27 +306,15 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
           onTouchMove={touchDragId ? handleTouchMoveDrag : undefined}
           onTouchEnd={touchDragId ? handleTouchEndDrag : undefined}
         >
-          {activeItems.map(item => (
-            <div
-              key={item.id}
-              data-id={item.id}
-              className={dragOverId === item.id || touchDragOverId === item.id ? 'border-t-2 border-primary-500' : ''}
-            >
-              <TodoItem
-                item={item}
-                selectable={isSelectMode}
-                selected={selectedIds.has(item.id)}
-                onToggleSelect={() => toggleSelection(item.id)}
-                onToggleComplete={() => handleItemToggle(item)}
-                isCompleting={completingIds.has(item.id)}
-                showDragHandle={!isSelectMode}
-                isDragging={draggedId === item.id || touchDragId === item.id}
-                onDragStart={(e) => handleDragStart(e, item.id)}
-                onDragOver={(e) => handleDragOver(e, item.id)}
-                onDrop={(e) => handleDrop(e, item.id)}
-                onDragEnd={handleDragEnd}
-                onTouchStartDrag={(e) => handleTouchStartDrag(e, item.id)}
-              />
+          {uncategorizedActiveItems.map(renderActiveItem)}
+
+          {Array.from(categorizedActiveItems.entries()).map(([category, categoryItems], index) => (
+            <div key={category}>
+              <div className={`flex items-center gap-3 px-4 ${uncategorizedActiveItems.length === 0 && index === 0 ? 'pt-2' : 'pt-4'} pb-2 text-xs font-semibold uppercase tracking-[0.2em] text-surface-400 dark:text-surface-500`}>
+                <span>{category}</span>
+                <div className="h-px flex-1 bg-surface-100 dark:bg-surface-800" />
+              </div>
+              {categoryItems.map(renderActiveItem)}
             </div>
           ))}
 
