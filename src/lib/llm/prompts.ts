@@ -71,8 +71,13 @@ export function buildSystemPrompt(list: ListContext, items: ItemContext[], infer
      ...(inferMetadata
        ? [`- You may optionally include metadata if directly stated or strongly implied. Allowed values: ${CORE_METADATA_RULES}. Metadata goes in the metadata field, not in item text.`]
        : []),
-     '- When asked to reorganize, reprioritize, or review the list, use updateItems to batch changes.',
-     '- When asked to sort, prioritize, or reorder the list, use reorderItems with item IDs in the desired order.',
+      '- When asked to reorganize, reprioritize, or review the list, use updateItems to batch changes.',
+      '- When asked to sort, prioritize, or reorder the list, use reorderItems with item IDs in the desired order.',
+      '- When adding items, you may assign a category to group related items (e.g. "Produce", "Meat", "Pantry" for groceries). Categories are freeform strings. Omit category for items that don\'t need grouping.',
+      '- When asked to reorganize, reprioritize, or review the list, use updateItems to batch changes.',
+      '- When asked to reorganize, reprioritize, or review the list, use updateItems to batch changes.',
+      '- When asked to sort, prioritize, or reorder the list, use reorderItems with item IDs in the desired order.',
+      '- When adding items, you may assign a category to group related items (e.g. "Produce", "Meat", "Pantry" for groceries). Categories are freeform strings. Omit category for items that don\'t need grouping.',
     '- If a request is ambiguous or matches multiple items, ask which one.',
     '',
     'Conversation rules:',
