@@ -6,7 +6,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { NextRequest } from 'next/server'
 import { buildSystemPrompt } from '@/lib/llm/prompts'
-import { todoTools } from '@/lib/llm/tools'
+import { buildTodoTools } from '@/lib/llm/tools'
 
 export const dynamic = 'force-dynamic'
 
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       model: providerModel,
       system: buildSystemPrompt(listState?.list ?? { name: 'My List' }, listState?.items ?? [], inferMetadata),
       messages: coreMessages,
-      tools: todoTools,
+      tools: buildTodoTools(inferMetadata),
     })
 
     return result.toUIMessageStreamResponse()
