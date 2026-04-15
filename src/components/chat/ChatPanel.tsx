@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useChat } from '@ai-sdk/react'
 import type { UIMessage } from 'ai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -19,6 +20,7 @@ import { detectToolCallMismatch, buildCorrectionPrompt } from '@/lib/llm/verific
 import { ChatInput } from './ChatInput'
 import type { PendingImage } from './ChatInput'
 import { ChatMessages } from './ChatMessages'
+import { slideUpVariants, springSnappy } from '@/lib/motion'
 
 interface ChatPanelProps {
   listId: string
@@ -288,8 +290,17 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
 
   return (
     <div className="flex h-full flex-col bg-surface-50 dark:bg-surface-950 relative">
+      <AnimatePresence>
       {isMissingApiKey ? (
-        <div data-testid="api-key-warning" className="absolute top-4 left-4 right-4 z-10 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950 p-3 text-sm text-amber-900 dark:text-amber-200 shadow-sm flex items-start gap-2 animate-slide-up">
+        <motion.div
+          data-testid="api-key-warning"
+          className="absolute top-4 left-4 right-4 z-10 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950 p-3 text-sm text-amber-900 dark:text-amber-200 shadow-sm flex items-start gap-2"
+          variants={slideUpVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={springSnappy}
+        >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0" role="img" aria-label="Warning"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
           <div>
             Missing AI settings. Add your provider, model, and API key in{' '}
@@ -298,15 +309,26 @@ export function ChatPanel({ listId, list, clearChatRef }: ChatPanelProps) {
             </Link>
             .
           </div>
-        </div>
+        </motion.div>
       ) : null}
+      </AnimatePresence>
 
+      <AnimatePresence>
       {error ? (
-        <div data-testid="chat-error" className="absolute top-4 left-4 right-4 z-10 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950 p-3 text-sm text-rose-700 dark:text-rose-200 shadow-sm flex items-start gap-2 animate-slide-up">
+        <motion.div
+          data-testid="chat-error"
+          className="absolute top-4 left-4 right-4 z-10 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950 p-3 text-sm text-rose-700 dark:text-rose-200 shadow-sm flex items-start gap-2"
+          variants={slideUpVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={springSnappy}
+        >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0" role="img" aria-label="Error"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div>{error.message || 'Something went wrong while sending your message.'}</div>
-        </div>
+        </motion.div>
       ) : null}
+      </AnimatePresence>
 
       <ChatMessages messages={viewMessages} isLoading={isLoading} isStreaming={status === 'streaming'} />
 

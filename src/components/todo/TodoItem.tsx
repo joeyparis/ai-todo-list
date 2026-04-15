@@ -1,7 +1,9 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Item } from '@/lib/db/types'
 import { completeItems, uncompleteItems, updateItem, deleteItems } from '@/lib/db/mutations'
+import { springSnappy } from '@/lib/motion'
 
 interface MetadataBadgesProps {
   metadata: Record<string, unknown>
@@ -170,7 +172,7 @@ export function TodoItem({
 
   return (
     <section 
-      className={`relative overflow-hidden border-b border-surface-100 dark:border-surface-800 animate-slide-in ${isDragging ? 'opacity-50 shadow-lg' : ''}`} 
+      className={`relative overflow-hidden border-b border-surface-100 dark:border-surface-800 ${isDragging ? 'opacity-50 shadow-lg' : ''}`} 
       data-testid="todo-item"
       aria-label={item.text}
       draggable={showDragHandle}
@@ -188,7 +190,7 @@ export function TodoItem({
 
       <div
         ref={itemRef}
-        className={`relative flex items-center gap-3 py-3 px-4 bg-white dark:bg-surface-900 transition-transform ${isSwiping ? '' : 'duration-200'} ${isCompleted ? 'opacity-60' : ''} ${isCompleting ? 'animate-complete-out' : ''}`}
+        className={`relative flex items-center gap-3 py-3 px-4 bg-white dark:bg-surface-900 transition-transform ${isSwiping ? '' : 'duration-200'} ${isCompleted ? 'opacity-60' : ''}`}
         style={{ transform: `translateX(${translateX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -210,11 +212,24 @@ export function TodoItem({
           aria-label={selectable ? (selected ? 'Deselect' : 'Select') : item.completed ? 'Mark incomplete' : 'Mark complete'}
           data-testid="todo-checkbox"
         >
-          {(selectable ? selected : item.completed) && (
-            <svg aria-hidden="true" className="w-3 h-3 text-white animate-check-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          )}
+          <AnimatePresence>
+            {(selectable ? selected : item.completed) && (
+              <motion.svg
+                aria-hidden="true"
+                className="w-3 h-3 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={3}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={springSnappy}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </motion.svg>
+            )}
+          </AnimatePresence>
         </button>
 
         <div className="flex-1 min-w-0">

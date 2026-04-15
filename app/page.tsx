@@ -1,9 +1,19 @@
 'use client'
 import { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useLists } from '@/lib/db/hooks'
 import { createList, updateList, deleteList } from '@/lib/db/mutations'
+import {
+  springDefault,
+  springSnappy,
+  tweenDefault,
+  fadeVariants,
+  scaleInVariants,
+  listItemVariants,
+  staggerContainer,
+} from '@/lib/motion'
 
 function relativeTime(date: Date): string {
   const diff = Date.now() - date.getTime()
@@ -104,69 +114,102 @@ export default function HomePage() {
         </div>
       )}
 
-      {!showCreate ? (
-        <button
-          type="button"
-          onClick={() => setShowCreate(true)}
-          className="w-full border-2 border-dashed border-surface-300 dark:border-surface-700 rounded-xl p-4 mb-6 text-surface-500 dark:text-surface-400 hover:border-primary-400 hover:text-primary-500 dark:hover:border-primary-500 dark:hover:text-primary-400 transition-colors text-left flex items-center gap-2 touch-target"
-          data-testid="new-list-button"
-        >
-          + New List
-        </button>
-      ) : (
-        <form onSubmit={handleCreate} className="card p-5 mb-6 animate-scale-in">
-          <h2 className="text-lg font-semibold mb-4 text-surface-900 dark:text-surface-50">Create New List</h2>
-          <input
-            type="text"
-            placeholder="List name"
-            value={formName}
-            onChange={e => setFormName(e.target.value)}
-            className="input-base w-full mb-3"
-            required
-            autoFocus
-            aria-label="List name"
-          />
-          <input
-            type="text"
-            placeholder="What's the goal? (optional)"
-            value={formGoal}
-            onChange={e => setFormGoal(e.target.value)}
-            className="input-base w-full mb-4"
-            aria-label="List goal"
-          />
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="btn-primary flex-1"
-            >
-              Create
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowCreate(false)
-                setFormName('')
-                setFormGoal('')
-              }}
-              className="btn-secondary flex-1"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+      <AnimatePresence mode="wait">
+        {!showCreate ? (
+          <motion.button
+            key="new-list-btn"
+            type="button"
+            onClick={() => setShowCreate(true)}
+            className="w-full border-2 border-dashed border-surface-300 dark:border-surface-700 rounded-xl p-4 mb-6 text-surface-500 dark:text-surface-400 hover:border-primary-400 hover:text-primary-500 dark:hover:border-primary-500 dark:hover:text-primary-400 transition-colors text-left flex items-center gap-2 touch-target"
+            data-testid="new-list-button"
+            variants={fadeVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={tweenDefault}
+          >
+            + New List
+          </motion.button>
+        ) : (
+          <motion.form
+            key="create-form"
+            onSubmit={handleCreate}
+            className="card p-5 mb-6"
+            variants={scaleInVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={springDefault}
+          >
+            <h2 className="text-lg font-semibold mb-4 text-surface-900 dark:text-surface-50">Create New List</h2>
+            <input
+              type="text"
+              placeholder="List name"
+              value={formName}
+              onChange={e => setFormName(e.target.value)}
+              className="input-base w-full mb-3"
+              required
+              autoFocus
+              aria-label="List name"
+            />
+            <input
+              type="text"
+              placeholder="What's the goal? (optional)"
+              value={formGoal}
+              onChange={e => setFormGoal(e.target.value)}
+              className="input-base w-full mb-4"
+              aria-label="List goal"
+            />
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="btn-primary flex-1"
+              >
+                Create
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreate(false)
+                  setFormName('')
+                  setFormGoal('')
+                }}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
 
       {lists.length === 0 && !showCreate && (
-        <div className="text-center mt-16 mb-12 animate-fade-in" data-testid="empty-state">
+        <motion.div
+          className="text-center mt-16 mb-12"
+          data-testid="empty-state"
+          variants={fadeVariants}
+          initial="initial"
+          animate="animate"
+          transition={tweenDefault}
+        >
           <div className="flex justify-center mb-6">
-            <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary-100 dark:text-primary-900/30">
+            <motion.svg
+              width="120"
+              height="120"
+              viewBox="0 0 120 120"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-primary-100 dark:text-primary-900/30"
+              animate={{ y: [0, -4, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
               <rect x="30" y="20" width="60" height="80" rx="8" fill="currentColor" />
               <path d="M45 15H75V25H45V15Z" fill="currentColor" className="text-primary-200 dark:text-primary-800/50" />
               <circle cx="60" cy="60" r="16" fill="currentColor" className="text-primary-300 dark:text-primary-700/50" />
               <path d="M60 52V68M52 60H68" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-primary-500 dark:text-primary-400" />
               <line x1="45" y1="40" x2="75" y2="40" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-primary-200 dark:text-primary-800/50" />
               <line x1="45" y1="80" x2="75" y2="80" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-primary-200 dark:text-primary-800/50" />
-            </svg>
+            </motion.svg>
           </div>
           <h3 className="text-xl font-semibold mb-2 text-surface-800 dark:text-surface-100">No lists yet</h3>
           <p className="text-surface-500 dark:text-surface-400 mb-6 max-w-xs mx-auto">
@@ -179,7 +222,7 @@ export default function HomePage() {
           >
             Create your first list
           </button>
-        </div>
+        </motion.div>
       )}
 
       {lists.length > 0 && filteredLists.length === 0 && (
@@ -188,9 +231,25 @@ export default function HomePage() {
         </div>
       )}
 
-      <div className="space-y-3">
+      <motion.div
+        className="space-y-3"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <AnimatePresence mode="popLayout">
         {filteredLists.map(list => (
-          <div key={list.id} className={`card relative group hover:shadow-soft-md hover:-translate-y-0.5 transition-all duration-200 ${openMenuId === list.id ? 'z-30' : ''}`} data-testid="list-card">
+          <motion.div
+            key={list.id}
+            className={`card relative group hover:shadow-soft-md hover:-translate-y-0.5 transition-all duration-200 ${openMenuId === list.id ? 'z-30' : ''}`}
+            data-testid="list-card"
+            variants={listItemVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            layout
+            transition={springDefault}
+          >
             <button
               type="button"
               onClick={() => router.push(`/list/${list.id}`)}
@@ -223,6 +282,7 @@ export default function HomePage() {
               </svg>
             </button>
 
+            <AnimatePresence>
             {openMenuId === list.id && (
               <>
                 <div 
@@ -233,7 +293,14 @@ export default function HomePage() {
                   }}
                   aria-hidden="true"
                 />
-                <div className="absolute right-3 top-12 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl shadow-lg z-20 overflow-hidden min-w-[140px] animate-scale-in">
+                <motion.div
+                  className="absolute right-3 top-12 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-xl shadow-lg z-20 overflow-hidden min-w-[140px]"
+                  variants={scaleInVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={springSnappy}
+                >
                   <button
                     type="button"
                     onClick={async e => {
@@ -266,12 +333,14 @@ export default function HomePage() {
                     </svg>
                     Delete
                   </button>
-                </div>
+                </motion.div>
               </>
             )}
-          </div>
+            </AnimatePresence>
+          </motion.div>
         ))}
-      </div>
+        </AnimatePresence>
+      </motion.div>
     </main>
   )
 }

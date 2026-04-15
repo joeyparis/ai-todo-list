@@ -1,5 +1,7 @@
 'use client'
 import React from 'react'
+import { motion } from 'framer-motion'
+import { slideUpVariants, springDefault } from '@/lib/motion'
 
 export interface ChatImage {
   url: string
@@ -115,7 +117,13 @@ export function ChatBubble({ messageRole, content, images, isStreaming }: ChatBu
   const isUser = messageRole === 'user'
   const hasImages = images && images.length > 0
   return (
-    <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} mb-4 animate-slide-up`}>
+    <motion.div
+      className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} mb-4`}
+      variants={slideUpVariants}
+      initial="initial"
+      animate="animate"
+      transition={springDefault}
+    >
       <div className="flex items-center gap-1 mb-1 px-1">
         {isUser ? (
           <>
@@ -160,6 +168,6 @@ export function ChatBubble({ messageRole, content, images, isStreaming }: ChatBu
         )}
         {isStreaming && <span className="inline-block w-1.5 h-4 ml-1 bg-primary-400 animate-pulse align-middle" />}
       </div>
-    </div>
+    </motion.div>
   )
 }

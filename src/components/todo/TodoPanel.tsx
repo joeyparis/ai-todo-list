@@ -1,11 +1,23 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useItems } from '@/lib/db/hooks'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TodoItem } from './TodoItem'
 import { AddItemInput } from './AddItemInput'
 import { completeItems, deleteItems, reorderItems, uncompleteItems } from '@/lib/db/mutations'
 import type { Item } from '@/lib/db/types'
+import {
+  springDefault,
+  springGentle,
+  springSnappy,
+  tweenDefault,
+  listItemVariants,
+  fadeVariants,
+  slideUpVariants,
+  collapseVariants,
+  motionSafe,
+} from '@/lib/motion'
 
 const COMPLETE_ANIMATION_MS = 250
 
@@ -240,10 +252,18 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
     return groups
   }, new Map<string, typeof activeItems>())
 
+  const itemTransition = motionSafe(springDefault, prefersReducedMotion)
+
   const renderActiveItem = (item: (typeof activeItems)[number]) => (
-    <div
+    <motion.div
       key={item.id}
       data-id={item.id}
+      variants={listItemVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={itemTransition}
+      layout={!prefersReducedMotion}
       className={dragOverId === item.id || touchDragOverId === item.id ? 'border-t-2 border-primary-500' : ''}
     >
       <TodoItem
@@ -261,7 +281,7 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
         onDragEnd={handleDragEnd}
         onTouchStartDrag={(e) => handleTouchStartDrag(e, item.id)}
       />
-    </div>
+    </motion.div>
   )
 
   return (
@@ -292,21 +312,29 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
       </div>
 
       {items.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+        <motion.div
+          className="flex-1 flex flex-col items-center justify-center p-8 text-center"
+          variants={fadeVariants}
+          initial="initial"
+          animate="animate"
+          transition={tweenDefault}
+        >
           <svg aria-hidden="true" className="w-16 h-16 text-primary-200 dark:text-primary-900 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <p className="text-surface-500 dark:text-surface-400 text-sm">
             No items yet. Use the chat below to brain dump your tasks!
           </p>
-        </div>
+        </motion.div>
       ) : (
         <div 
           className="flex-1 overflow-y-auto"
           onTouchMove={touchDragId ? handleTouchMoveDrag : undefined}
           onTouchEnd={touchDragId ? handleTouchEndDrag : undefined}
         >
-          {uncategorizedActiveItems.map(renderActiveItem)}
+          <AnimatePresence mode="popLayout">
+            {uncategorizedActiveItems.map(renderActiveItem)}
+          </AnimatePresence>
 
           {Array.from(categorizedActiveItems.entries()).map(([category, categoryItems], index) => (
             <div key={category}>
@@ -314,7 +342,9 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
                 <span>{category}</span>
                 <div className="h-px flex-1 bg-surface-100 dark:bg-surface-800" />
               </div>
-              {categoryItems.map(renderActiveItem)}
+              <AnimatePresence mode="popLayout">
+                {categoryItems.map(renderActiveItem)}
+              </AnimatePresence>
             </div>
           ))}
 
@@ -326,20 +356,28 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
                 className="flex items-center gap-2 px-4 py-2 w-full text-left text-sm font-medium text-surface-500 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-900 transition-colors"
                 data-testid="completed-section"
               >
-                <svg
+                <motion.svg
                   aria-hidden="true"
-                  className={`w-4 h-4 transition-transform duration-200 ${isCompletedExpanded ? 'rotate-180' : ''}`}
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  animate={{ rotate: isCompletedExpanded ? 180 : 0 }}
+                  transition={motionSafe(springSnappy, prefersReducedMotion)}
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                </motion.svg>
                 Completed ({completedItems.length})
               </button>
               
-              {isCompletedExpanded && (
-                <div className="animate-slide-in">
+              <motion.div
+                variants={collapseVariants}
+                initial="collapsed"
+                animate={isCompletedExpanded ? 'expanded' : 'collapsed'}
+                transition={motionSafe(springGentle, prefersReducedMotion)}
+                style={{ display: 'grid', overflow: 'hidden' }}
+              >
+                <div style={{ minHeight: 0 }}>
                   {completedItems.map(item => (
                     <TodoItem
                       key={item.id}
@@ -351,36 +389,43 @@ export function TodoPanel({ listId, goal }: TodoPanelProps) {
                     />
                   ))}
                 </div>
-              )}
+              </motion.div>
             </div>
           )}
         </div>
       )}
 
-      {isSelectMode && selectedIds.size > 0 && (
-        <div 
-          className="absolute bottom-16 left-4 right-4 bg-surface-900 dark:bg-surface-50 text-white dark:text-surface-900 rounded-lg shadow-xl p-3 flex items-center justify-between animate-slide-in z-10"
-          data-testid="bulk-action-bar"
-        >
-          <span className="text-sm font-medium px-2">{selectedIds.size} selected</span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={handleBulkComplete}
-              className="px-3 py-1.5 text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors"
-            >
-              Complete All
-            </button>
-            <button
-              type="button"
-              onClick={handleBulkDelete}
-              className="px-3 py-1.5 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
-            >
-              Delete All
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isSelectMode && selectedIds.size > 0 && (
+          <motion.div
+            className="absolute bottom-16 left-4 right-4 bg-surface-900 dark:bg-surface-50 text-white dark:text-surface-900 rounded-lg shadow-xl p-3 flex items-center justify-between z-10"
+            data-testid="bulk-action-bar"
+            variants={slideUpVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={motionSafe(springSnappy, prefersReducedMotion)}
+          >
+            <span className="text-sm font-medium px-2">{selectedIds.size} selected</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleBulkComplete}
+                className="px-3 py-1.5 text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors"
+              >
+                Complete All
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                className="px-3 py-1.5 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+              >
+                Delete All
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="mt-auto border-t border-surface-100 dark:border-surface-800 bg-white dark:bg-surface-950">
         <AddItemInput listId={listId} />

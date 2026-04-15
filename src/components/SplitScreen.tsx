@@ -1,7 +1,9 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { springDefault, tweenFast } from '@/lib/motion'
 
 interface SplitScreenProps {
   listName: string
@@ -69,7 +71,7 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack, onClearCha
       </header>
 
       {isMobile && (
-        <div className="flex border-b border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 flex-shrink-0">
+        <div className="flex border-b border-surface-200 dark:border-surface-800 bg-white dark:bg-surface-900 flex-shrink-0 relative">
           <button
             type="button"
             data-testid="tab-tasks"
@@ -77,9 +79,6 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack, onClearCha
             className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${activeTab === 'tasks' ? 'text-primary-600 dark:text-primary-400' : 'text-surface-500 dark:text-surface-400'}`}
           >
             Tasks
-            {activeTab === 'tasks' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
-            )}
           </button>
           <button
             type="button"
@@ -88,10 +87,13 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack, onClearCha
             className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${activeTab === 'chat' ? 'text-primary-600 dark:text-primary-400' : 'text-surface-500 dark:text-surface-400'}`}
           >
             Chat
-            {activeTab === 'chat' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400" />
-            )}
           </button>
+          <motion.div
+            className="absolute bottom-0 h-0.5 bg-primary-600 dark:bg-primary-400"
+            style={{ width: '50%' }}
+            animate={{ x: activeTab === 'tasks' ? '0%' : '100%' }}
+            transition={springDefault}
+          />
         </div>
       )}
 
@@ -117,15 +119,21 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack, onClearCha
           setIsDragging(false)
         }}
       >
+        <AnimatePresence mode="wait">
         {(!isMobile || activeTab === 'tasks') && (
-          <div
-            className={`flex flex-col overflow-hidden ${isMobile ? 'w-full animate-fade-in' : ''}`}
+          <motion.div
+            key="tasks-panel"
+            className={`flex flex-col overflow-hidden ${isMobile ? 'w-full' : ''}`}
             style={!isMobile ? { flex: listVisible ? splitRatio : 0 } : undefined}
+            initial={isMobile ? { opacity: 0, x: -20 } : false}
+            animate={{ opacity: 1, x: 0 }}
+            exit={isMobile ? { opacity: 0, x: -20 } : undefined}
+            transition={isMobile ? springDefault : tweenFast}
           >
             <div className="flex-1 overflow-y-auto">
               {(!isMobile ? listVisible : true) && listPanel}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {!isMobile && (
@@ -185,15 +193,21 @@ export function SplitScreen({ listName, listPanel, chatPanel, onBack, onClearCha
         )}
 
         {(!isMobile || activeTab === 'chat') && (
-          <div
-            className={`flex flex-col overflow-hidden ${isMobile ? 'w-full animate-fade-in' : ''}`}
+          <motion.div
+            key="chat-panel"
+            className={`flex flex-col overflow-hidden ${isMobile ? 'w-full' : ''}`}
             style={!isMobile ? { flex: chatVisible ? 1 - splitRatio : 0 } : undefined}
+            initial={isMobile ? { opacity: 0, x: 20 } : false}
+            animate={{ opacity: 1, x: 0 }}
+            exit={isMobile ? { opacity: 0, x: 20 } : undefined}
+            transition={isMobile ? springDefault : tweenFast}
           >
             <div className="flex-1 overflow-y-auto flex flex-col">
               {(!isMobile ? chatVisible : true) && chatPanel}
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </div>
   )
